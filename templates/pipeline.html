@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Orchestration Pipeline — GreenFactor Custom Cold Emailer{% endblock %}
+
+{% block content %}
+<section class="pipeline-header">
+    <div class="header-details">
+        <span class="campaign-tag">CAMPAIGN ID: <span id="campaign-id-display">{{ campaign_id }}</span></span>
+        <h1>Multi-Agent Orchestration Layer</h1>
+        <p class="tagline">Visualizing real-time agent collaboration and the self-correcting critique loop.</p>
+    </div>
+    <div class="pipeline-loader">
+        <div class="spinner"></div>
+        <span id="campaign-global-status">Orchestrator running...</span>
+    </div>
+</section>
+
+<!-- Visual Stepper of Agents -->
+<div class="agent-stepper-container glass-card">
+    <div class="stepper-track"></div>
+    
+    <div class="step-card" id="step-prospecting">
+        <div class="step-icon"><i class="fa-solid fa-user-zoom"></i></div>
+        <div class="step-info">
+            <h3>Prospecting Agent</h3>
+            <span class="role-badge">Researcher</span>
+            <p>Scrapes LinkedIn profiles & gathers professional credentials.</p>
+        </div>
+        <div class="step-status"><i class="fa-solid fa-clock"></i> Pending</div>
+    </div>
+    
+    <div class="step-card" id="step-context">
+        <div class="step-icon"><i class="fa-solid fa-briefcase"></i></div>
+        <div class="step-info">
+            <h3>Context Agent</h3>
+            <span class="role-badge">Strategist</span>
+            <p>Gathers Wikipedia & DuckDuckGo company news to identify pain points.</p>
+        </div>
+        <div class="step-status"><i class="fa-solid fa-clock"></i> Pending</div>
+    </div>
+    
+    <div class="step-card" id="step-copywriter">
+        <div class="step-icon"><i class="fa-solid fa-pen-nib"></i></div>
+        <div class="step-info">
+            <h3>Copywriter Agent</h3>
+            <span class="role-badge">Synthesizer</span>
+            <p>Drafts hyper-personalized cold emails using collected intelligence.</p>
+        </div>
+        <div class="step-status"><i class="fa-solid fa-clock"></i> Pending</div>
+    </div>
+    
+    <div class="step-card" id="step-proofreader">
+        <div class="step-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="step-info">
+            <h3>Proofreader Agent</h3>
+            <span class="role-badge">Fact-Checker</span>
+            <p>Fact-checks content against inputs and triggers self-correction loops.</p>
+        </div>
+        <div class="step-status"><i class="fa-solid fa-clock"></i> Pending</div>
+    </div>
+</div>
+
+<!-- Live Agent Active Task Duration Timeline -->
+<div class="glass-card timeline-visualizer-card hidden" id="timeline-visualizer-card" style="margin-bottom: 30px;">
+    <div class="card-header" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; margin-bottom: 16px;">
+        <h2 style="font-size: 16px; font-weight: 700; color: var(--accent-purple); display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-timeline"></i> Active Agent Duration Timeline: <span id="timeline-prospect-name" style="color: var(--text-primary); font-weight: 800;">None</span>
+        </h2>
+    </div>
+    <div class="timeline-container" style="display: flex; flex-wrap: wrap; gap: 20px; width: 100%;">
+        <!-- Prospecting Agent -->
+        <div class="timeline-bar-wrapper" style="flex: 1; min-width: 200px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                <span style="font-weight: 600;"><i class="fa-solid fa-user-zoom"></i> Prospecting Agent</span>
+                <span id="dur-prospecting" style="font-family: monospace; font-weight: 700;">0.0s</span>
+            </div>
+            <div class="timeline-progress-track" style="height: 10px; background: rgba(148, 163, 184, 0.12); border-radius: 5px; overflow: hidden; position: relative;">
+                <div id="bar-prospecting" class="timeline-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); border-radius: 5px; transition: width 0.3s ease;"></div>
+            </div>
+        </div>
+        
+        <!-- Context Agent -->
+        <div class="timeline-bar-wrapper" style="flex: 1; min-width: 200px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                <span style="font-weight: 600;"><i class="fa-solid fa-briefcase"></i> Context Agent</span>
+                <span id="dur-context" style="font-family: monospace; font-weight: 700;">0.0s</span>
+            </div>
+            <div class="timeline-progress-track" style="height: 10px; background: rgba(148, 163, 184, 0.12); border-radius: 5px; overflow: hidden; position: relative;">
+                <div id="bar-context" class="timeline-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); border-radius: 5px; transition: width 0.3s ease;"></div>
+            </div>
+        </div>
+        
+        <!-- Copywriting Agent -->
+        <div class="timeline-bar-wrapper" style="flex: 1; min-width: 200px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                <span style="font-weight: 600;"><i class="fa-solid fa-pen-nib"></i> Copywriter Agent</span>
+                <span id="dur-copywriting" style="font-family: monospace; font-weight: 700;">0.0s</span>
+            </div>
+            <div class="timeline-progress-track" style="height: 10px; background: rgba(148, 163, 184, 0.12); border-radius: 5px; overflow: hidden; position: relative;">
+                <div id="bar-copywriting" class="timeline-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); border-radius: 5px; transition: width 0.3s ease;"></div>
+            </div>
+        </div>
+        
+        <!-- Proofreader Agent -->
+        <div class="timeline-bar-wrapper" style="flex: 1; min-width: 200px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                <span style="font-weight: 600;"><i class="fa-solid fa-shield-halved"></i> Proofreader Agent</span>
+                <span id="dur-proofreading" style="font-family: monospace; font-weight: 700;">0.0s</span>
+            </div>
+            <div class="timeline-progress-track" style="height: 10px; background: rgba(148, 163, 184, 0.12); border-radius: 5px; overflow: hidden; position: relative;">
+                <div id="bar-proofreading" class="timeline-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); border-radius: 5px; transition: width 0.3s ease;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="pipeline-grid">
+    <!-- Active Prospect Tracking List -->
+    <div class="glass-card prospect-tracking-card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-users-gear"></i> Prospect Pipeline Status</h2>
+        </div>
+        <div class="prospects-running-list" id="prospects-running-list">
+            <!-- Dynamically populated prospect cards with current stage -->
+        </div>
+    </div>
+
+    <!-- Live Execution Logs (Terminal-style) -->
+    <div class="glass-card terminal-card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-terminal"></i> Live Execution Logs</h2>
+            <div class="terminal-dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+            </div>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+            <div class="log-line system-log">[SYSTEM] Initializing multi-agent campaign...</div>
+            <div class="log-line system-log">[SYSTEM] Google Gemini 2.0 Flash engine verified.</div>
+            <div class="log-line system-log">[SYSTEM] Monitoring pipeline logs below...</div>
+        </div>
+    </div>
+</div>
+
+<div class="pipeline-actions hidden" id="pipeline-completion-actions">
+    <div class="glass-card completion-card">
+        <div class="completion-content">
+            <i class="fa-solid fa-circle-check completion-icon"></i>
+            <div>
+                <h3>Campaign Execution Completed!</h3>
+                <p>All prospects have been processed. Email drafts have been proofread and saved.</p>
+            </div>
+        </div>
+        <div class="completion-btns">
+            <a href="/campaign/{{ campaign_id }}/results" class="btn btn-primary btn-large">
+                <i class="fa-solid fa-list-check"></i> View Campaign Results
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Start polling pipeline status for the active campaign
+        initPipelinePolling("{{ campaign_id }}");
+    });
+</script>
+{% endblock %}

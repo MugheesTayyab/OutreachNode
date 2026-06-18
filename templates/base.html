@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GreenFactor — Custom Cold Emailer{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Background elements for depth and glow effects -->
+    <div class="background-glow bg-glow-1"></div>
+    <div class="background-glow bg-glow-2"></div>
+    <div class="background-glow bg-glow-3"></div>
+
+    <header class="app-header">
+        <div class="header-container">
+            <a href="/" class="app-logo">
+                <span class="logo-emoji">🌿</span>
+                <span class="logo-text">Green<span>Factor</span></span>
+            </a>
+            <nav class="app-nav">
+                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-simple"></i> Dashboard
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="app-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 GreenFactor. Developed for UAV Lab Internship by Mughees Tayyab.</p>
+    </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — GreenFactor Custom Cold Emailer{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <h1 class="gradient-title">Custom Cold Emailer</h1>
+    <p class="hero-tagline">Visualizing elite end-to-end multi-agent workflow, incorporating "Self-Correcting Proofreader" quality assurance.</p>
+</section>
+
+<div class="dashboard-grid">
+    <!-- Left Panel: Configuration & File Upload -->
+    <div class="glass-card main-config-card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-sliders"></i> Campaign Setup</h2>
+        </div>
+        
+        <form id="campaign-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="sender_name">Sender Name</label>
+                    <input type="text" id="sender_name" name="sender_name" value="Mughees Tayyab" placeholder="Enter your name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sender_role">Sender Role</label>
+                    <input type="text" id="sender_role" name="sender_role" value="Founder" placeholder="Enter your role" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sender_company">Sender Company</label>
+                    <input type="text" id="sender_company" name="sender_company" value="GreenFactor" placeholder="Enter your company" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tone">Email Tone</label>
+                    <select id="tone" name="tone">
+                        <option value="friendly">Friendly & Collaborative</option>
+                        <option value="formal" selected>Professional & Formal</option>
+                        <option value="bold">Bold & Direct</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="goal">Campaign Goal</label>
+                    <select id="goal" name="goal">
+                        <option value="partnership" selected>Strategic Partnership</option>
+                        <option value="meeting">Book a Call / Meeting</option>
+                        <option value="demo">Schedule a Demo</option>
+                    </select>
+                </div>
+
+                <div class="form-group toggle-group">
+                    <label for="auto_generate_audio" class="toggle-label">
+                        <span>Auto-Generate Voicemail Audio</span>
+                        <input type="checkbox" id="auto_generate_audio" name="auto_generate_audio">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="form-group" style="grid-column: span 2; margin-top: 10px;">
+                    <label for="custom_prompt">Outreach Prompt / Email Objective</label>
+                    <textarea id="custom_prompt" name="custom_prompt" rows="3" placeholder="Define exactly what the email should be about (e.g., pitch our software development services, request feedback on their recent launch, discuss partnership, etc.)" required>Pitch our UAV and AI drone-based crop monitoring solutions for green index estimation and precision agriculture.</textarea>
+                </div>
+            </div>
+
+            <!-- Upload Zone -->
+            <div class="upload-zone" id="upload-zone">
+                <input type="file" id="csv-file-input" accept=".csv" class="hidden-input">
+                <div class="upload-content">
+                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                    <p class="upload-text">Drag & drop your prospects CSV here, or <span>browse files</span></p>
+                    <p class="upload-subtext">Must contain headers: <strong>name, email, company, title, linkedin_url</strong></p>
+                </div>
+            </div>
+
+            <!-- CSV Preview Area -->
+            <div id="csv-preview-container" class="csv-preview-container hidden">
+                <h3><i class="fa-solid fa-list-check"></i> Loaded Prospects Preview (<span id="prospect-count">0</span> rows)</h3>
+                <div class="table-wrapper">
+                    <table id="preview-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Company</th>
+                                <th>Title</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody id="preview-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Launch Button -->
+            <input type="hidden" id="uploaded-filepath" name="filepath">
+            <button type="submit" id="submit-btn" class="btn btn-primary btn-block btn-large disabled-btn" disabled>
+                <i class="fa-solid fa-rocket"></i> Launch Multi-Agent Campaign
+            </button>
+        </form>
+    </div>
+
+    <!-- Right Panel: Campaign History -->
+    <div class="glass-card history-card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Campaign History</h2>
+        </div>
+        
+        <div class="campaign-history-list">
+            {% if campaigns %}
+                {% for camp in campaigns %}
+                    <div class="history-item glass-card-nested">
+                        <div class="history-item-header">
+                            <span class="campaign-badge">ID: {{ camp.campaign_id }}</span>
+                            <span class="status-badge {{ camp.status }}">{{ camp.status.upper() }}</span>
+                        </div>
+                        <div class="history-item-body">
+                            <p><strong>Total Prospects:</strong> {{ camp.total_prospects }}</p>
+                            <p><strong>Goal:</strong> {{ camp.settings.goal.capitalize() }} | <strong>Tone:</strong> {{ camp.settings.tone.capitalize() }}</p>
+                        </div>
+                        <div class="history-item-actions">
+                            {% if camp.status == 'completed' %}
+                                <a href="/campaign/{{ camp.campaign_id }}/results" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-eye"></i> View Results
+                                </a>
+                                <a href="/api/download/{{ camp.campaign_id }}" class="btn btn-success btn-sm">
+                                    <i class="fa-solid fa-file-excel"></i> Excel
+                                </a>
+                            {% elif camp.status == 'running' %}
+                                <a href="/campaign/{{ camp.campaign_id }}/pipeline" class="btn btn-primary btn-sm pulse-button">
+                                    <i class="fa-solid fa-spinner fa-spin"></i> View Pipeline
+                                </a>
+                            {% else %}
+                                <a href="/campaign/{{ camp.campaign_id }}/pipeline" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-rotate-right"></i> Check Status
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fa-solid fa-folder-open empty-icon"></i>
+                    <p>No campaigns run yet. Set up a campaign and upload a CSV to get started.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

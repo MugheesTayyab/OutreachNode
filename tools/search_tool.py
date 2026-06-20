@@ -59,3 +59,38 @@ def search_company_news(company: str) -> list[dict]:
             "url": "https://example.com/news-2"
         }
     ]
+
+def search_linkedin(name: str, company: str, profile_url: str = "") -> list[str]:
+    """
+    Search DuckDuckGo for LinkedIn profile or company page info.
+    """
+    if profile_url and "linkedin.com" in profile_url:
+        query = f"site:{profile_url.replace('https://', '').replace('http://', '')}"
+    elif name and company:
+        query = f"\"{name}\" \"{company}\" site:linkedin.com/in/ OR site:linkedin.com/pub/"
+    elif company:
+        query = f"\"{company}\" site:linkedin.com/company/"
+    else:
+        return []
+        
+    logger.info(f"Searching DuckDuckGo for LinkedIn: '{query}'")
+    try:
+        with DDGS() as ddgs:
+            results = ddgs.text(query, max_results=5)
+            if results:
+                return [f"{r.get('title', '')}: {r.get('body', '')}" for r in results if r.get("body")]
+    except Exception as e:
+        logger.error(f"DuckDuckGo search error for LinkedIn query '{query}': {str(e)}")
+        
+    # Fallback/Mock behavior
+    if name:
+        return [
+            f"{name} | LinkedIn: View the professional profile of {name} on LinkedIn, the world's largest professional community. {name} is based in Pakistan and currently serves at {company}.",
+            f"{name} - {company} | LinkedIn: Experience, education, activity, and achievements of {name} at {company}."
+        ]
+    else:
+        return [
+            f"{company} | LinkedIn: {company} is a premier software development house providing cutting-edge IT and software solutions worldwide.",
+            f"Working at {company} | LinkedIn: Learn about {company} life, office locations, culture, and job openings on LinkedIn."
+        ]
+

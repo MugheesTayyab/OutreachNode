@@ -7,28 +7,31 @@ class CopywriterAgent:
     def __init__(self, gemini_client: GeminiClient):
         self.gemini = gemini_client
 
-    def run(self, prospect_profile: dict, company_context: dict, campaign_settings: dict) -> dict:
+    def run(self, prospect_profile: dict, linkedin_data: dict, company_context: dict, campaign_settings: dict) -> dict:
         """
         Generates a highly personalized cold email draft.
         """
         logger.info(f"Copywriter Agent generating email for {prospect_profile.get('name')} at {prospect_profile.get('company')}...")
         
         system_prompt = """
-You are a world-class B2B copywriter specializing in highly personalized, high-converting cold outreach.
+You are a world-class B2B copywriter specializing in highly personalized, high-converting cold outreach designed to help business developers find clients, and students or job seekers find career opportunities.
 Your task is to write a short, compelling, and professional cold email.
-Guidelines:
-- Length: Keep it brief (under 150 words).
-- Hook: Open with a highly personalized comment or congratulations based on their profile or company news. Avoid generic templates.
-- Objective: You must draft the email to specifically satisfy the user's custom outreach prompt/objective.
-- Value: Clearly and concisely state the value proposition or how you can solve a likely pain point.
-- CTA: Include a low-friction, single call to action (e.g. "Do you have 5 minutes for a quick chat next Tuesday?").
+
+Outreach Purpose & Strategy:
+- For Business Development / Finding Clients: Focus on how your service/product specifically addresses a service gap, pain point, or growth initiative identified on their website.
+- For Job Seekers / Students: Focus on demonstrating genuine knowledge of their projects/tech stack, expressing admiration for their engineering/design culture, and suggesting how you can contribute.
+- Length: Keep it brief (under 150 words, ideally 3-5 sentences). Be direct and respect their time.
+- Hook: Open with a highly personalized comment or congratulations based on their LinkedIn profile/insights or company news/website research. Never say "Hope this email finds you well" or "My name is...".
+- Objective: Draft the email to specifically satisfy the user's custom outreach prompt/objective.
+- Value: Concisely connect the company's specific services or website details with your value proposition, showing how you can benefit them.
+- Unique Personalization: DO NOT reuse the same structure or phrases for different companies. Each email must feel completely handcrafted, logical, and unique to the specific prospect.
+- CTA: Include a low-friction, single call to action (e.g. "Do you have 5 minutes for a quick chat next Tuesday?" or "Would you be open to a brief chat about upcoming projects?").
 - Tone: Match the tone requested by the user.
-- Formatting: Use clean spacing. Use brackets like [Sender Name] for placeholders only if you don't have the sender info.
 
 Output a valid JSON object. Do not include any extra text. The JSON keys must be:
 - "subject": A catchy, personalized subject line (no spammy clickbait).
 - "body": The full body of the email.
-- "personalization_hooks": A list of the specific facts or news you incorporated to make it personalized.
+- "personalization_hooks": A list of the specific facts, news, or LinkedIn details you incorporated to make it personalized.
 """
 
         user_prompt = f"""
@@ -40,11 +43,17 @@ Prospect Profile:
 - Career Highlights: {prospect_profile.get('career_highlights')}
 - Professional Summary: {prospect_profile.get('professional_summary')}
 
-Company Context:
+LinkedIn Insights:
+- URL: {linkedin_data.get('linkedin_url')}
+- Summary: {linkedin_data.get('linkedin_summary')}
+- Specific Insights: {linkedin_data.get('linkedin_insights')}
+
+Company Context & Website Research:
 - Summary: {company_context.get('company_summary')}
 - Recent News: {company_context.get('recent_news')}
 - Pain Points: {company_context.get('pain_points')}
 - Talking Points: {company_context.get('talking_points')}
+- Website Alignment with Outreach Objective: {company_context.get('custom_alignment')}
 
 Campaign Settings:
 - Sender Name: {campaign_settings.get('sender_name', 'Mughees Tayyab')}
@@ -66,7 +75,7 @@ Write the email and output the JSON.
                 "personalization_hooks": ["Job title", "Company name"]
             }
 
-    def revise(self, original_draft: dict, critique: str, prospect_profile: dict, company_context: dict, campaign_settings: dict) -> dict:
+    def revise(self, original_draft: dict, critique: str, prospect_profile: dict, linkedin_data: dict, company_context: dict, campaign_settings: dict) -> dict:
         """
         Revises the cold email draft incorporating feedback from the Proofreader Agent.
         """
@@ -75,6 +84,7 @@ Write the email and output the JSON.
         system_prompt = """
 You are a world-class B2B copywriter. You have been given an email draft that was REJECTED by a proofreader/editor.
 Your job is to revise the email draft to fully address the critique while keeping the email engaging, brief, and personalized.
+Make sure you leverage the LinkedIn profile info and deep company website alignment to make the email uniquely fit this prospect.
 You must output a valid JSON object. Do not include any extra text. The JSON keys must be:
 - "subject": The revised subject line.
 - "body": The revised body of the email.
@@ -95,9 +105,15 @@ Prospect Details:
 - Company: {prospect_profile.get('company')}
 - Key Interests: {prospect_profile.get('key_interests')}
 
+LinkedIn Insights:
+- URL: {linkedin_data.get('linkedin_url')}
+- Summary: {linkedin_data.get('linkedin_summary')}
+- Specific Insights: {linkedin_data.get('linkedin_insights')}
+
 Company Context:
 - Summary: {company_context.get('company_summary')}
 - Talking Points: {company_context.get('talking_points')}
+- Website Alignment with Outreach Objective: {company_context.get('custom_alignment')}
 
 Campaign Settings:
 - Sender Name: {campaign_settings.get('sender_name')}
@@ -112,3 +128,4 @@ Please revise the email to address all points in the critique. Output the clean 
         except Exception as e:
             logger.error(f"Copywriter Agent revision failed: {str(e)}")
             return original_draft
+

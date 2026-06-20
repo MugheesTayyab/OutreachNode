@@ -42,12 +42,12 @@ def read_csv(filepath: str) -> list[dict]:
     standard_map = {}
     for col in df.columns:
         col_lower = str(col).lower()
-        if "name" in col_lower or "founder" in col_lower:
-            standard_map[col] = "name"
+        if "company" in col_lower:
+            standard_map[col] = "company"
         elif "email" in col_lower:
             standard_map[col] = "email"
-        elif "company" in col_lower:
-            standard_map[col] = "company"
+        elif "name" in col_lower or "founder" in col_lower:
+            standard_map[col] = "name"
         elif "title" in col_lower or "role" in col_lower:
             standard_map[col] = "title"
         elif "linkedin" in col_lower:

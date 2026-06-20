@@ -5,6 +5,7 @@ from config.settings import OUTPUT_DIR
 from middleware.gemini_client import GeminiClient
 from middleware.state_manager import StateManager
 from agents.prospecting_agent import ProspectingAgent
+from agents.linkedin_agent import LinkedInAgent
 from agents.context_agent import ContextAgent
 from agents.copywriter_agent import CopywriterAgent
 from agents.proofreader_agent import ProofreaderAgent
@@ -17,6 +18,7 @@ class Orchestrator:
     def __init__(self, gemini_client: GeminiClient = None):
         self.gemini = gemini_client or GeminiClient()
         self.prospecting_agent = ProspectingAgent(self.gemini)
+        self.linkedin_agent = LinkedInAgent(self.gemini)
         self.context_agent = ContextAgent(self.gemini)
         self.copywriter_agent = CopywriterAgent(self.gemini)
         self.proofreader_agent = ProofreaderAgent(self.gemini)
@@ -47,7 +49,7 @@ class Orchestrator:
         for p in prospects:
             prospect_id = p["id"]
             logger.info(f"Processing prospect {prospect_id}: {p['name']}...")
-            timeline = {"prospecting": 0, "context": 0, "copywriting": 0, "proofreading": 0}
+            timeline = {"prospecting": 0, "linkedin": 0, "context": 0, "copywriting": 0, "proofreading": 0}
             
             try:
                 # 1. Prospecting
@@ -67,13 +69,26 @@ class Orchestrator:
                     "agent_timeline": timeline
                 })
 
-                # 2. Context
+                # 1b. LinkedIn Research
+                start = time.time()
+                StateManager.update_prospect(campaign_id, prospect_id, {"stage": "linkedin"})
+                if callback_fn:
+                    callback_fn(campaign_id, "prospect_update", {"id": prospect_id, "stage": "linkedin"})
+                    
+                linkedin_data = self.linkedin_agent.run(prospect_data)
+                timeline["linkedin"] = round(time.time() - start, 1)
+                StateManager.update_prospect(campaign_id, prospect_id, {
+                    "linkedin_data": linkedin_data,
+                    "agent_timeline": timeline
+                })
+
+                # 2. Context / Website Deep Search
                 start = time.time()
                 StateManager.update_prospect(campaign_id, prospect_id, {"stage": "context"})
                 if callback_fn:
                     callback_fn(campaign_id, "prospect_update", {"id": prospect_id, "stage": "context"})
                     
-                context_data = self.context_agent.run(prospect_data)
+                context_data = self.context_agent.run(prospect_data, linkedin_data, settings)
                 timeline["context"] = round(time.time() - start, 1)
                 StateManager.update_prospect(campaign_id, prospect_id, {
                     "context_data": context_data,
@@ -86,7 +101,7 @@ class Orchestrator:
                 if callback_fn:
                     callback_fn(campaign_id, "prospect_update", {"id": prospect_id, "stage": "copywriting"})
                     
-                draft = self.copywriter_agent.run(prospect_data, context_data, settings)
+                draft = self.copywriter_agent.run(prospect_data, linkedin_data, context_data, settings)
                 timeline["copywriting"] = round(time.time() - start, 1)
                 StateManager.update_prospect(campaign_id, prospect_id, {"agent_timeline": timeline})
                 
@@ -108,22 +123,26 @@ class Orchestrator:
                     if callback_fn:
                         callback_fn(campaign_id, "prospect_update", {"id": prospect_id, "stage": f"proofreading_attempt_{attempts}"})
                         
-                    evaluation = self.proofreader_agent.run(draft, prospect_data, context_data)
+                    evaluation = self.proofreader_agent.run(draft, prospect_data, linkedin_data, context_data, settings)
                     
                     approved = evaluation.get("approved", False)
                     score = evaluation.get("score", 0)
                     critique = evaluation.get("critique", "")
                     
-                    logger.info(f"Proofreader Evaluation (Attempt {attempts}): Score={score}, Approved={approved}")
+                    logger.info(
+                        f"Proofreader Evaluation (Attempt {attempts}): Score={score}, Approved={approved}, "
+                        f"Sub-scores: Relevance={evaluation.get('relevance_score')}/10, Tone={evaluation.get('tone_score')}/10, "
+                        f"Personalization={evaluation.get('personalization_score')}/10, Accuracy={evaluation.get('accuracy_score')}/10"
+                    )
                     
                     proof_durations.append(round(time.time() - attempt_start, 1))
                     timeline["proofreading"] = round(sum(proof_durations), 1)
                     StateManager.update_prospect(campaign_id, prospect_id, {"agent_timeline": timeline})
                     
                     if not approved and attempts < max_attempts:
-                        logger.info(f"Draft rejected. Revising (Attempt {attempts + 1})...")
+                        logger.info(f"Draft rejected (Score: {score}). Revising (Attempt {attempts + 1})...")
                         copy_start = time.time()
-                        draft = self.copywriter_agent.revise(draft, critique, prospect_data, context_data, settings)
+                        draft = self.copywriter_agent.revise(draft, critique, prospect_data, linkedin_data, context_data, settings)
                         timeline["copywriting"] = round(timeline["copywriting"] + (time.time() - copy_start), 1)
                         StateManager.update_prospect(campaign_id, prospect_id, {"agent_timeline": timeline})
                         attempts += 1
@@ -155,6 +174,10 @@ class Orchestrator:
                     "email_body": draft.get("body", ""),
                     "proofread_score": score,
                     "proofread_critique": critique,
+                    "relevance_score": evaluation.get("relevance_score", 0),
+                    "tone_score": evaluation.get("tone_score", 0),
+                    "personalization_score": evaluation.get("personalization_score", 0),
+                    "accuracy_score": evaluation.get("accuracy_score", 0),
                     "status": status,
                     "audio_path": audio_path
                 }
@@ -167,6 +190,8 @@ class Orchestrator:
                 p_updated["company_summary"] = context_data.get("company_summary", "")
                 p_updated["recent_news"] = "\n".join(context_data.get("recent_news", []))
                 p_updated["pain_points"] = "\n".join(context_data.get("pain_points", []))
+                p_updated["linkedin_summary"] = linkedin_data.get("linkedin_summary", "")
+                p_updated["custom_alignment"] = context_data.get("custom_alignment", "")
                 completed_list.append(p_updated)
                 
                 if callback_fn:

@@ -7,30 +7,51 @@ class ProofreaderAgent:
     def __init__(self, gemini_client: GeminiClient):
         self.gemini = gemini_client
 
-    def run(self, draft_email: dict, prospect_profile: dict, company_context: dict) -> dict:
+    def run(self, draft_email: dict, prospect_profile: dict, linkedin_data: dict, company_context: dict, campaign_settings: dict = None) -> dict:
         """
-        Evaluates the generated cold email for accuracy, tone, personalization, and potential hallucinations.
+        Evaluates the generated cold email for accuracy, tone, personalization, relevance to outreach prompt, and potential hallucinations.
         """
         logger.info(f"Proofreader Agent evaluating draft for {prospect_profile.get('name')}...")
         
+        campaign_settings = campaign_settings or {}
+        custom_prompt = campaign_settings.get("custom_prompt", "Introduce our services and suggest a brief call.")
+        expected_tone = campaign_settings.get("tone", "friendly")
+        
         system_prompt = """
-You are an expert editor, quality assurance agent, and fact-checker. Your job is to review a cold email draft for a prospect.
-Analyze the email against the raw prospect and company facts.
-Evaluate the following:
-1. Fact-checking: Does the email contain any hallucinated, incorrect, or unverified claims about the prospect or their company? (Everything in the email MUST match the provided profile and context).
-2. Fact and News Vetting: Rate the reliability and value of the news, facts, or LinkedIn claims referenced in the email on a scale of 1 to 10. If any referenced news/fact has a confidence level or reliability rating of less than 6/10, or is not worth mentioning, you MUST reject the email.
-3. Personalization Quality: Is the hook genuine and interesting, or is it generic filler?
-4. Tone and Clarity: Is it professional, clear, and under 150 words?
-5. Spam Triggers: Does it use clickbait subject lines or sound overly aggressive?
+You are an expert editor, quality assurance agent, and strict business communication fact-checker.
+Your job is to perform a rigorous multi-dimensional validation of a cold outreach email draft against the ground truth facts and settings.
 
-Based on this, you must output a valid JSON object. Do not include extra text. The JSON keys must be:
-- "approved": true if the email score is 8 or higher, has NO factual errors, and all incorporated facts have at least 6/10 confidence. false if it has factual errors, incorporates low-confidence/unvetted facts, sounds template-y, or has a score less than 8.
-- "score": An integer rating from 1 to 10.
-- "critique": A detailed paragraph explaining what is good and what needs to be fixed (mandatory if approved is false).
-- "issues": A list of specific issues found (e.g. ["Low confidence in recent funding news (less than 6/10)", "Hallucinated Series C funding", "Subject line is spammy", "Score is less than 8/10"]).
+You must evaluate the following four dimensions and assign an integer score (1 to 10) for each:
+1. Relevance to Outreach Objective (relevance_score): Does the email directly address the user's specific outreach prompt/objective (e.g. job application, client pitch, partnership)? Is the connection to the prospect's company logical and compelling? Reject generic or irrelevant pitches.
+2. Tone Match (tone_score): Does the email body match the requested tone (formal, friendly, or bold)?
+3. Personalization Quality (personalization_score): Does the email naturally weave in specific, high-value facts from the company website research and LinkedIn insights? Or does it sound like a generic copy-paste template with swapped names?
+4. Factual Accuracy (accuracy_score): Does the email contain any hallucinated, unverified, or incorrect claims about the prospect, their LinkedIn details, or their company? Any unverified detail gets a lower accuracy score.
+
+Approval Rules:
+- The overall score (score) is the average of these 4 sub-scores (rounded to the nearest integer).
+- The email is approved (approved = true) ONLY if:
+  a) The overall score is 8 or higher (above 7/10).
+  b) Factual Accuracy (accuracy_score) is 10/10 (absolutely NO factual errors or hallucinations).
+  c) Relevance to Outreach Objective (relevance_score) is 8/10 or higher.
+  d) Personalization Quality (personalization_score) is 8/10 or higher.
+- If ANY of these conditions fail, approved MUST be set to false.
+
+Output a valid JSON object. Do not include extra text outside the JSON. The JSON keys must be:
+- "approved": true/false
+- "relevance_score": integer (1-10)
+- "tone_score": integer (1-10)
+- "personalization_score": integer (1-10)
+- "accuracy_score": integer (1-10)
+- "score": overall score (1-10)
+- "critique": a detailed paragraph explaining what is good and what MUST be fixed (mandatory, especially if approved is false).
+- "issues": a list of specific issues found (e.g. ["Did not mention the job seeking intent", "Falsely claimed they won an award", "Tone is too formal for friendly settings"]).
 """
 
         user_prompt = f"""
+Campaign Settings (Target Settings):
+- Requested Tone: {expected_tone}
+- Outreach Objective / Custom Prompt: {custom_prompt}
+
 Email Draft:
 Subject: {draft_email.get('subject')}
 Body: {draft_email.get('body')}
@@ -43,21 +64,35 @@ Prospect Profile (Ground Truth):
 - Career Highlights: {prospect_profile.get('career_highlights')}
 - Professional Summary: {prospect_profile.get('professional_summary')}
 
+LinkedIn Insights (Ground Truth):
+- URL: {linkedin_data.get('linkedin_url')}
+- Summary: {linkedin_data.get('linkedin_summary')}
+- Insights: {linkedin_data.get('linkedin_insights')}
+
 Company Context (Ground Truth):
 - Summary: {company_context.get('company_summary')}
 - Recent News: {company_context.get('recent_news')}
 - Pain Points: {company_context.get('pain_points')}
 - Talking Points: {company_context.get('talking_points')}
+- Website Alignment: {company_context.get('custom_alignment')}
 
 Please perform the review and output the JSON.
 """
         try:
-            return self.gemini.generate_json(system_prompt, user_prompt, temperature=0.2)
+            res = self.gemini.generate_json(system_prompt, user_prompt, temperature=0.2)
+            # Guarantee structure
+            res["approved"] = res.get("approved", False)
+            res["score"] = res.get("score", 5)
+            return res
         except Exception as e:
             logger.error(f"Proofreader Agent evaluation failed: {str(e)}")
             return {
-                "approved": True,
-                "score": 8,
-                "critique": "Automatic approval due to editor failure.",
-                "issues": []
+                "approved": False,
+                "relevance_score": 5,
+                "tone_score": 5,
+                "personalization_score": 5,
+                "accuracy_score": 5,
+                "score": 5,
+                "critique": f"Evaluation error: {str(e)}",
+                "issues": [f"Evaluation error: {str(e)}"]
             }

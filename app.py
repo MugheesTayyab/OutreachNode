@@ -31,6 +31,13 @@ def run_campaign_background(campaign_id: str):
         state = StateManager.load_state(campaign_id)
         if state:
             state["status"] = "failed"
+            from middleware.orchestrator import is_api_key_or_rate_limit_error
+            if is_api_key_or_rate_limit_error(e):
+                state["error_type"] = "api_key_limit_reached"
+                state["error_message"] = f"API Key or Rate Limit reached: {str(e)}"
+            else:
+                state["error_type"] = "general_error"
+                state["error_message"] = str(e)
             StateManager.save_state(campaign_id, state)
 
 @app.route('/')

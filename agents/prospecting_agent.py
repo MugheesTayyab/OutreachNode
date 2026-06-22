@@ -54,6 +54,9 @@ Create the structured professional profile. Ensure the JSON is clean and valid.
             return profile
         except Exception as e:
             logger.error(f"Prospecting Agent failed for {name}: {str(e)}")
+            from middleware.orchestrator import is_api_key_or_rate_limit_error
+            if is_api_key_or_rate_limit_error(e):
+                raise e
             # Fallback profile
             return {
                 "name": name,

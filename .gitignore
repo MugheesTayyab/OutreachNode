@@ -9,3 +9,5 @@ data/output/
 static/audio/
 instance/
 .pytest_cache/
+data/input/*
+!data/input/sample_prospects.csv

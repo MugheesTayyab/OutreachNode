@@ -9,14 +9,26 @@ from agents.linkedin_agent import LinkedInAgent
 from agents.context_agent import ContextAgent
 from agents.copywriter_agent import CopywriterAgent
 from agents.proofreader_agent import ProofreaderAgent
+from agents.orchestrator_agent import OrchestratorAgent
 from tools.excel_tool import write_excel
 from tools.tts_tool import generate_audio
 
 logger = logging.getLogger(__name__)
 
+def is_api_key_or_rate_limit_error(exception: Exception) -> bool:
+    err_str = str(exception).lower()
+    # Check for Google Gemini API key or rate limit indicators
+    indicators = [
+        "429", "resourceexhausted", "quota", "rate limit", 
+        "limit exceeded", "api key", "api_key", "invalid key", "not valid",
+        "api key not working", "limit reach"
+    ]
+    return any(ind in err_str for ind in indicators)
+
 class Orchestrator:
     def __init__(self, gemini_client: GeminiClient = None):
         self.gemini = gemini_client or GeminiClient()
+        self.orchestrator_agent = OrchestratorAgent(self.gemini)
         self.prospecting_agent = ProspectingAgent(self.gemini)
         self.linkedin_agent = LinkedInAgent(self.gemini)
         self.context_agent = ContextAgent(self.gemini)
@@ -27,6 +39,15 @@ class Orchestrator:
         """
         Runs the full multi-agent pipeline for all prospects in a campaign.
         Updates state in real-time.
+        
+        Flow:
+        1. Orchestrator Agent analyzes the outreach prompt → research plan
+        2. For each prospect:
+           a. Prospecting Agent gathers profile info
+           b. LinkedIn Agent (guided by research plan) gathers LinkedIn intelligence
+           c. Context/Web Agent (guided by research plan) gathers company intelligence
+           d. Copywriter Agent (guided by research plan) drafts a personalized email
+           e. Proofreader Agent (guided by research plan) evaluates & loops if score ≤ 7
         """
         logger.info(f"Starting Campaign {campaign_id}...")
         state = StateManager.load_state(campaign_id)
@@ -44,12 +65,62 @@ class Orchestrator:
         if callback_fn:
             callback_fn(campaign_id, "campaign_started", None)
 
+        # ═══════════════════════════════════════════════════════════════
+        # STEP 0: Orchestrator Agent — Analyze the outreach prompt
+        # ═══════════════════════════════════════════════════════════════
+        custom_prompt = settings.get("custom_prompt", "")
+        research_plan = {}
+
+        if custom_prompt:
+            logger.info("Orchestrator Agent analyzing outreach prompt...")
+            state["current_stage"] = "analyzing_prompt"
+            StateManager.save_state(campaign_id, state)
+            
+            if callback_fn:
+                callback_fn(campaign_id, "stage_update", {"stage": "analyzing_prompt"})
+
+            prompt_start = time.time()
+            try:
+                research_plan = self.orchestrator_agent.analyze_prompt(custom_prompt, settings)
+            except Exception as e:
+                logger.error(f"Orchestrator Agent analysis failed: {str(e)}")
+                state = StateManager.load_state(campaign_id)
+                if state:
+                    state["status"] = "failed"
+                    if is_api_key_or_rate_limit_error(e):
+                        state["error_type"] = "api_key_limit_reached"
+                        state["error_message"] = f"API Key or Rate Limit reached: {str(e)}"
+                    else:
+                        state["error_type"] = "general_error"
+                        state["error_message"] = str(e)
+                    StateManager.save_state(campaign_id, state)
+                if callback_fn:
+                    callback_fn(campaign_id, "campaign_failed", {"error": str(e)})
+                raise e
+            prompt_duration = round(time.time() - prompt_start, 1)
+
+            # Store the research plan in state for visibility
+            state["research_plan"] = research_plan
+            state["orchestrator_duration"] = prompt_duration
+            StateManager.save_state(campaign_id, state)
+
+            logger.info(
+                f"Orchestrator Agent completed in {prompt_duration}s. "
+                f"LinkedIn priority: {research_plan.get('linkedin_priority')}, "
+                f"Web priority: {research_plan.get('web_priority')}"
+            )
+        else:
+            logger.info("No custom prompt provided. Skipping Orchestrator Agent analysis.")
+
+        # ═══════════════════════════════════════════════════════════════
+        # PROCESS EACH PROSPECT
+        # ═══════════════════════════════════════════════════════════════
         completed_list = []
 
         for p in prospects:
             prospect_id = p["id"]
             logger.info(f"Processing prospect {prospect_id}: {p['name']}...")
-            timeline = {"prospecting": 0, "linkedin": 0, "context": 0, "copywriting": 0, "proofreading": 0}
+            timeline = {"orchestrator": prompt_duration if custom_prompt else 0, "prospecting": 0, "linkedin": 0, "context": 0, "copywriting": 0, "proofreading": 0}
             
             try:
                 # 1. Prospecting
@@ -69,39 +140,39 @@ class Orchestrator:
                     "agent_timeline": timeline
                 })
 
-                # 1b. LinkedIn Research
+                # 1b. LinkedIn Research (guided by research plan)
                 start = time.time()
                 StateManager.update_prospect(campaign_id, prospect_id, {"stage": "linkedin"})
                 if callback_fn:
                     callback_fn(campaign_id, "prospect_update", {"id": prospect_id, "stage": "linkedin"})
                     
-                linkedin_data = self.linkedin_agent.run(prospect_data)
+                linkedin_data = self.linkedin_agent.run(prospect_data, research_plan)
                 timeline["linkedin"] = round(time.time() - start, 1)
                 StateManager.update_prospect(campaign_id, prospect_id, {
                     "linkedin_data": linkedin_data,
                     "agent_timeline": timeline
                 })
 
-                # 2. Context / Website Deep Search
+                # 2. Context / Website Deep Search (guided by research plan)
                 start = time.time()
                 StateManager.update_prospect(campaign_id, prospect_id, {"stage": "context"})
                 if callback_fn:
                     callback_fn(campaign_id, "prospect_update", {"id": prospect_id, "stage": "context"})
                     
-                context_data = self.context_agent.run(prospect_data, linkedin_data, settings)
+                context_data = self.context_agent.run(prospect_data, linkedin_data, settings, research_plan)
                 timeline["context"] = round(time.time() - start, 1)
                 StateManager.update_prospect(campaign_id, prospect_id, {
                     "context_data": context_data,
                     "agent_timeline": timeline
                 })
 
-                # 3. Copywriting & 4. Proofreading Loop
+                # 3. Copywriting & 4. Proofreading Loop (both guided by research plan)
                 start = time.time()
                 StateManager.update_prospect(campaign_id, prospect_id, {"stage": "copywriting"})
                 if callback_fn:
                     callback_fn(campaign_id, "prospect_update", {"id": prospect_id, "stage": "copywriting"})
                     
-                draft = self.copywriter_agent.run(prospect_data, linkedin_data, context_data, settings)
+                draft = self.copywriter_agent.run(prospect_data, linkedin_data, context_data, settings, research_plan)
                 timeline["copywriting"] = round(time.time() - start, 1)
                 StateManager.update_prospect(campaign_id, prospect_id, {"agent_timeline": timeline})
                 
@@ -123,7 +194,7 @@ class Orchestrator:
                     if callback_fn:
                         callback_fn(campaign_id, "prospect_update", {"id": prospect_id, "stage": f"proofreading_attempt_{attempts}"})
                         
-                    evaluation = self.proofreader_agent.run(draft, prospect_data, linkedin_data, context_data, settings)
+                    evaluation = self.proofreader_agent.run(draft, prospect_data, linkedin_data, context_data, settings, research_plan)
                     
                     approved = evaluation.get("approved", False)
                     score = evaluation.get("score", 0)
@@ -142,7 +213,7 @@ class Orchestrator:
                     if not approved and attempts < max_attempts:
                         logger.info(f"Draft rejected (Score: {score}). Revising (Attempt {attempts + 1})...")
                         copy_start = time.time()
-                        draft = self.copywriter_agent.revise(draft, critique, prospect_data, linkedin_data, context_data, settings)
+                        draft = self.copywriter_agent.revise(draft, critique, prospect_data, linkedin_data, context_data, settings, research_plan)
                         timeline["copywriting"] = round(timeline["copywriting"] + (time.time() - copy_start), 1)
                         StateManager.update_prospect(campaign_id, prospect_id, {"agent_timeline": timeline})
                         attempts += 1
@@ -199,6 +270,19 @@ class Orchestrator:
 
             except Exception as e:
                 logger.error(f"Pipeline error for prospect {prospect_id}: {str(e)}")
+                
+                # If API rate limit/key error, fail the campaign immediately
+                if is_api_key_or_rate_limit_error(e):
+                    state = StateManager.load_state(campaign_id)
+                    if state:
+                        state["status"] = "failed"
+                        state["error_type"] = "api_key_limit_reached"
+                        state["error_message"] = f"API Key or Rate Limit reached: {str(e)}"
+                        StateManager.save_state(campaign_id, state)
+                    if callback_fn:
+                        callback_fn(campaign_id, "campaign_failed", {"error": str(e)})
+                    raise e
+
                 updates = {
                     "stage": "failed",
                     "status": "failed",

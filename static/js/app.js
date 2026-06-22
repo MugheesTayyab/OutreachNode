@@ -202,23 +202,12 @@ function initPipelinePolling(campaignId) {
     // Timeline DOM elements
     const timelineCard = document.getElementById('timeline-visualizer-card');
     const timelineProspectName = document.getElementById('timeline-prospect-name');
-    
-    const durProspecting = document.getElementById('dur-prospecting');
-    const barProspecting = document.getElementById('bar-prospecting');
-    
-    const durContext = document.getElementById('dur-context');
-    const barContext = document.getElementById('bar-context');
-    
-    const durCopywriting = document.getElementById('dur-copywriting');
-    const barCopywriting = document.getElementById('bar-copywriting');
-    
-    const durProofreading = document.getElementById('dur-proofreading');
-    const barProofreading = document.getElementById('bar-proofreading');
 
     if (!terminalBody) return;
 
     let processedProspectIds = new Set();
     let currentLogs = [];
+    let orchestratorLogged = false;
 
     const pollInterval = setInterval(() => {
         fetch(`/api/status/${campaignId}`)
@@ -228,6 +217,16 @@ function initPipelinePolling(campaignId) {
                 clearInterval(pollInterval);
                 showToast(state.error, 'error');
                 return;
+            }
+
+            // Log orchestrator agent activity
+            if (state.current_stage === 'analyzing_prompt' && !orchestratorLogged) {
+                orchestratorLogged = true;
+                appendLogLine(`[Orchestrator Agent] Analyzing outreach prompt and building research plan...`, 'agent-log');
+            }
+            if (state.research_plan && state.research_plan.email_angle && !currentLogs.includes('orchestrator_done')) {
+                currentLogs.push('orchestrator_done');
+                appendLogLine(`[Orchestrator Agent] Research plan ready. LinkedIn priority: ${state.research_plan.linkedin_priority}, Web priority: ${state.research_plan.web_priority}`, 'success-log');
             }
 
             // Update running list of prospects
@@ -277,13 +276,15 @@ function initPipelinePolling(campaignId) {
                 timelineCard.classList.remove('hidden');
                 timelineProspectName.innerText = `${activeProspect.name} (${activeProspect.company})`;
                 
-                const timeline = activeProspect.agent_timeline || {prospecting: 0, context: 0, copywriting: 0, proofreading: 0};
+                const timeline = activeProspect.agent_timeline || {orchestrator: 0, prospecting: 0, linkedin: 0, context: 0, copywriting: 0, proofreading: 0};
                 
                 // Clear any running frontend ticker interval if we moved to a new stage
                 const currentSubstage = activeStage.startsWith('proofreading') ? 'proofreading' : activeStage;
                 
                 // Render locked durations
+                updateTimelineBar('orchestrator', timeline.orchestrator, currentSubstage);
                 updateTimelineBar('prospecting', timeline.prospecting, currentSubstage);
+                updateTimelineBar('linkedin', timeline.linkedin, currentSubstage);
                 updateTimelineBar('context', timeline.context, currentSubstage);
                 updateTimelineBar('copywriting', timeline.copywriting, currentSubstage);
                 updateTimelineBar('proofreading', timeline.proofreading, currentSubstage);
@@ -302,13 +303,15 @@ function initPipelinePolling(campaignId) {
             if (activeStage && !currentLogs.includes(`${activeStage}_${state.status}`)) {
                 currentLogs.push(`${activeStage}_${state.status}`);
                 if (activeStage === 'prospecting') {
-                    appendLogLine(`[Prospecting Agent] Scraping LinkedIn profile details for current prospect...`, 'agent-log');
+                    appendLogLine(`[Prospecting Agent] Scraping web for professional profile details...`, 'agent-log');
+                } else if (activeStage === 'linkedin') {
+                    appendLogLine(`[LinkedIn Agent] Performing prompt-guided LinkedIn intelligence gathering...`, 'agent-log');
                 } else if (activeStage === 'context') {
-                    appendLogLine(`[Context Agent] Searching DuckDuckGo News and Wikipedia for company signals...`, 'agent-log');
+                    appendLogLine(`[Web/Context Agent] Executing prompt-guided deep search for company signals...`, 'agent-log');
                 } else if (activeStage === 'copywriting') {
-                    appendLogLine(`[Copywriter Agent] Generating personalized cold email templates...`, 'agent-log');
+                    appendLogLine(`[Copywriter Agent] Generating personalized cold email using research plan...`, 'agent-log');
                 } else if (activeStage.startsWith('proofreading')) {
-                    appendLogLine(`[Proofreader Agent] Auditing drafted content for tone and hallucinated facts...`, 'agent-log');
+                    appendLogLine(`[Proofreader Agent] Auditing email for tone match & prompt relevance (score > 7 required)...`, 'agent-log');
                 } else if (activeStage === 'generating_audio') {
                     appendLogLine(`[TTS Voicemail Tool] Rendering Google Text-to-Speech audio voicemails...`, 'system-log');
                 }
@@ -336,6 +339,20 @@ function initPipelinePolling(campaignId) {
                 document.querySelector('.pipeline-loader .spinner').style.display = 'none';
                 appendLogLine(`[SYSTEM ERROR] Campaign execution encountered a critical error and terminated.`, 'error-log');
                 showToast('Campaign execution failed.', 'error');
+                
+                if (state.error_type === 'api_key_limit_reached') {
+                    showErrorModal(
+                        'API Key / Limit Reached',
+                        'The agent network has suspended operations. The Gemini API Key might be invalid, not set, or the request rate limit was reached.',
+                        state.error_message || 'Quota exceeded (429) or invalid API Key.'
+                    );
+                } else {
+                    showErrorModal(
+                        'Agent Execution Failed',
+                        'The pipeline stopped running due to a system error. The agent was unable to continue processing.',
+                        state.error_message || 'General Agent failure.'
+                    );
+                }
             }
         })
         .catch(err => {
@@ -355,6 +372,8 @@ function initPipelinePolling(campaignId) {
         const bar = document.getElementById(`bar-${stageName}`);
         const text = document.getElementById(`dur-${stageName}`);
         
+        if (!bar || !text) return;
+        
         if (lockedDuration > 0 && stageName !== activeStage) {
             bar.style.width = '100%';
             bar.style.background = 'var(--accent-mint)'; // Completed stage
@@ -373,7 +392,6 @@ function initPipelinePolling(campaignId) {
         if (!activeBar || !activeText) return;
         
         // Check if we need to start or restart the ticker
-        const stateKey = `${activeStage}_ticker`;
         if (activeTimelineTimer && activeTimelineTimer.stage === activeStage) {
             return; // Already running for this stage
         }
@@ -409,41 +427,53 @@ function initPipelinePolling(campaignId) {
 
         if (!activeStage) return;
 
+        const stepOrchestrator = document.getElementById('step-orchestrator');
         const stepProspecting = document.getElementById('step-prospecting');
+        const stepLinkedin = document.getElementById('step-linkedin');
         const stepContext = document.getElementById('step-context');
         const stepCopywriter = document.getElementById('step-copywriter');
         const stepProofreader = document.getElementById('step-proofreader');
 
+        function markCompleted(el) {
+            if (el) {
+                el.classList.add('completed');
+                el.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
+            }
+        }
+        function markActive(el) {
+            if (el) {
+                el.classList.add('active');
+                el.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Active';
+            }
+        }
+
+        // Orchestrator is always completed by the time per-prospect stages start
+        markCompleted(stepOrchestrator);
+
         if (activeStage === 'prospecting') {
-            stepProspecting.classList.add('active');
-            stepProspecting.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Active';
+            markActive(stepProspecting);
+        } else if (activeStage === 'linkedin') {
+            markCompleted(stepProspecting);
+            markActive(stepLinkedin);
         } else if (activeStage === 'context') {
-            stepProspecting.classList.add('completed');
-            stepProspecting.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
-            
-            stepContext.classList.add('active');
-            stepContext.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Active';
+            markCompleted(stepProspecting);
+            markCompleted(stepLinkedin);
+            markActive(stepContext);
         } else if (activeStage === 'copywriting') {
-            stepProspecting.classList.add('completed');
-            stepContext.classList.add('completed');
-            stepProspecting.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
-            stepContext.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
-
-            stepCopywriter.classList.add('active');
-            stepCopywriter.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Active';
+            markCompleted(stepProspecting);
+            markCompleted(stepLinkedin);
+            markCompleted(stepContext);
+            markActive(stepCopywriter);
         } else if (activeStage.startsWith('proofreading') || activeStage === 'generating_audio') {
-            stepProspecting.classList.add('completed');
-            stepContext.classList.add('completed');
-            stepCopywriter.classList.add('completed');
-            stepProspecting.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
-            stepContext.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
-            stepCopywriter.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
-
-            stepProofreader.classList.add('active');
-            stepProofreader.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Active';
+            markCompleted(stepProspecting);
+            markCompleted(stepLinkedin);
+            markCompleted(stepContext);
+            markCompleted(stepCopywriter);
+            markActive(stepProofreader);
         }
     }
 }
+
 
 /* ==========================================================================
    RESULTS: SEARCH / FILTER TABLE ROW INTERACTION
@@ -535,6 +565,31 @@ function closePreviewModal() {
         audioPlayer.pause();
     }
     modal.classList.add('hidden');
+}
+
+function showErrorModal(title, message, details = '') {
+    const modal = document.getElementById('error-modal');
+    if (!modal) return;
+    
+    document.getElementById('error-modal-title').innerText = title;
+    document.getElementById('error-modal-message').innerText = message;
+    
+    const detailsBox = document.getElementById('error-modal-details');
+    if (details) {
+        detailsBox.innerText = details;
+        detailsBox.style.display = 'block';
+    } else {
+        detailsBox.style.display = 'none';
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function closeErrorModal() {
+    const modal = document.getElementById('error-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
 }
 
 function handleSendEmail() {

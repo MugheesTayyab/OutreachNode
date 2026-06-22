@@ -8,9 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env if it exists
 dotenv_path = BASE_DIR / '.env'
 if dotenv_path.exists():
-    load_dotenv(dotenv_path)
+    load_dotenv(dotenv_path, override=True)
 else:
-    load_dotenv()
+    load_dotenv(override=True)
 
 # API Keys & Credentials
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
@@ -18,7 +18,7 @@ SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 
 # Config Parameters
-MODEL_NAME = "gemini-2.0-flash"
+MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.0-flash")
 MAX_RETRIES = 3
 
 # Paths

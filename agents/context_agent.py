@@ -10,9 +10,11 @@ class ContextAgent:
     def __init__(self, gemini_client: GeminiClient):
         self.gemini = gemini_client
 
-    def run(self, prospect_profile: dict, linkedin_data: dict = None, campaign_settings: dict = None) -> dict:
+    def run(self, prospect_profile: dict, linkedin_data: dict = None, campaign_settings: dict = None, research_plan: dict = None) -> dict:
         """
         Analyzes the prospect's company using news, Wikipedia, website searches, and custom prompt alignment.
+        When a research_plan is provided by the OrchestratorAgent, uses its targeted search queries
+        and research focus instead of generating new ones.
         """
         company = prospect_profile.get("company", "")
         if not company:
@@ -27,7 +29,15 @@ class ContextAgent:
             
         campaign_settings = campaign_settings or {}
         linkedin_data = linkedin_data or {}
+        research_plan = research_plan or {}
         custom_prompt = campaign_settings.get("custom_prompt", "Introduce our services and suggest a brief call.")
+        
+        # Extract orchestrator guidance
+        research_focus = research_plan.get("research_focus", "")
+        original_prompt = research_plan.get("original_prompt", custom_prompt)
+        web_priority = research_plan.get("web_priority", "medium")
+        key_requirements = research_plan.get("key_requirements", [])
+        email_angle = research_plan.get("email_angle", "")
         
         logger.info(f"Context Agent running deep website/prompt analysis for company: {company}...")
         
@@ -51,25 +61,35 @@ class ContextAgent:
         except Exception as e:
             logger.error(f"Error finding website for {company}: {str(e)}")
 
-        # 3. Ask Gemini to generate 2-3 target search queries based on custom prompt
-        system_gen_prompt = """
+        # 3. Determine search queries — use orchestrator plan if available, otherwise generate via Gemini
+        queries = []
+        
+        if research_plan.get("web_search_queries"):
+            # Use the orchestrator-provided queries directly
+            logger.info(f"Using orchestrator-guided web search queries for {company}")
+            queries = [
+                q.replace("{company}", company)
+                for q in research_plan["web_search_queries"][:3]
+            ]
+        else:
+            # Fallback: Ask Gemini to generate queries (original behavior)
+            system_gen_prompt = """
 You are an expert search specialist. Your job is to output 2-3 search queries that will help find deep information on a company's website about their services, technology stack, and how they align with a specific outreach prompt.
 Output only the search queries, one per line. Do not include numbers, bullet points, quotes, or any extra text.
 """
-        user_gen_prompt = f"""
+            user_gen_prompt = f"""
 Company: {company}
 Found Website Snippets:
 {"\n".join(website_snippets)}
 
 Outreach Objective / Custom Prompt:
-{custom_prompt}
+{original_prompt}
 """
-        queries = []
-        try:
-            queries_text = self.gemini.generate(system_gen_prompt, user_gen_prompt, temperature=0.3)
-            queries = [q.strip() for q in queries_text.split("\n") if q.strip()]
-        except Exception as e:
-            logger.error(f"Failed to generate custom queries for {company}: {str(e)}")
+            try:
+                queries_text = self.gemini.generate(system_gen_prompt, user_gen_prompt, temperature=0.3)
+                queries = [q.strip() for q in queries_text.split("\n") if q.strip()]
+            except Exception as e:
+                logger.error(f"Failed to generate custom queries for {company}: {str(e)}")
             
         if not queries:
             queries = [
@@ -78,12 +98,13 @@ Outreach Objective / Custom Prompt:
                 f"{company} recent news updates"
             ]
 
-        # 4. Execute deep searches
+        # 4. Execute deep searches — scale effort based on web_priority
+        max_results_per_query = 4 if web_priority != "high" else 6
         deep_search_snippets = []
         for query in queries[:3]:
             try:
                 with DDGS() as ddgs:
-                    res = ddgs.text(query, max_results=4)
+                    res = ddgs.text(query, max_results=max_results_per_query)
                     if res:
                         deep_search_snippets.extend([f"Query [{query}] -> {r.get('title')}: {r.get('body')}" for r in res if r.get("body")])
             except Exception as e:
@@ -91,9 +112,22 @@ Outreach Objective / Custom Prompt:
                 
         deep_search_context = "\n".join([f"- {s}" for s in deep_search_snippets])
 
-        # 5. Synthesize Brief
-        system_prompt = """
+        # 5. Build key requirements context for the synthesis prompt
+        key_req_text = ""
+        if key_requirements:
+            key_req_text = "\n\nThe email being written for this company MUST address these specific requirements from the outreach strategy:\n"
+            for i, req in enumerate(key_requirements, 1):
+                key_req_text += f"  {i}. {req}\n"
+            key_req_text += "\nYour analysis should specifically surface information that helps satisfy these requirements."
+
+        # 6. Synthesize Brief
+        system_prompt = f"""
 You are a top-tier business strategist and intelligence analyst. Your job is to analyze a company based on its Wikipedia summary, recent news, website snippets, and LinkedIn insights, then synthesize a strategy brief that highlights how the company aligns with the user's outreach prompt.
+
+{"RESEARCH FOCUS: " + research_focus if research_focus else ""}
+{"EMAIL ANGLE: The email should approach this company from this angle: " + email_angle if email_angle else ""}
+{key_req_text}
+
 You must output a valid JSON object. Do not include any markdown formatting or extra text outside the JSON. The JSON keys must be:
 - "company_summary": A 2-3 sentence description of what the company does, its main sector, and value proposition.
 - "recent_news": A list of 2-3 major developments or updates about the company.
@@ -105,7 +139,7 @@ You must output a valid JSON object. Do not include any markdown formatting or e
         user_prompt = f"""
 Company Name: {company}
 Outreach Objective / Custom Prompt:
-{custom_prompt}
+{original_prompt}
 
 Wikipedia Summary:
 {wiki_summary or "No Wikipedia page found."}
@@ -129,15 +163,17 @@ Create the strategy brief. Ensure the JSON is clean and valid.
             brief["recent_news"] = brief.get("recent_news") or [f"Continuing operations and product development at {company}."]
             brief["pain_points"] = brief.get("pain_points") or ["Optimizing workflow efficiency", "Enhancing technical infrastructure"]
             brief["talking_points"] = brief.get("talking_points") or [f"Congratulations on the ongoing work at {company}"]
-            brief["custom_alignment"] = brief.get("custom_alignment") or f"Potential alignment with outreach objective: {custom_prompt}"
+            brief["custom_alignment"] = brief.get("custom_alignment") or f"Potential alignment with outreach objective: {original_prompt}"
             return brief
         except Exception as e:
             logger.error(f"Context Agent failed for company {company}: {str(e)}")
+            from middleware.orchestrator import is_api_key_or_rate_limit_error
+            if is_api_key_or_rate_limit_error(e):
+                raise e
             return {
                 "company_summary": f"{company} is a leading player in its industry.",
                 "recent_news": [f"Continuing operations and product development at {company}."],
                 "pain_points": ["Optimizing workflow efficiency", "Enhancing technical infrastructure"],
                 "talking_points": [f"Congratulations on the ongoing work at {company}"],
-                "custom_alignment": f"Potential alignment with outreach objective: {custom_prompt}"
+                "custom_alignment": f"Potential alignment with outreach objective: {original_prompt}"
             }
-

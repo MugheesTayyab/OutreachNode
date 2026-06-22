@@ -41,6 +41,9 @@ class StateManager:
             "campaign_id": campaign_id,
             "status": "pending",
             "settings": settings,
+            "research_plan": {},
+            "orchestrator_duration": 0,
+            "current_stage": "pending",
             "prospects": []
         }
         

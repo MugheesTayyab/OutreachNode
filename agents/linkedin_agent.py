@@ -1,13 +1,13 @@
 import logging
 from duckduckgo_search import DDGS
-from middleware.gemini_client import GeminiClient
+from middleware.ai_client import AIClient
 from tools.search_tool import search_linkedin
 
 logger = logging.getLogger(__name__)
 
 class LinkedInAgent:
-    def __init__(self, gemini_client: GeminiClient):
-        self.gemini = gemini_client
+    def __init__(self, ai_client: AIClient):
+        self.ai_client = ai_client
 
     def run(self, prospect_profile: dict, research_plan: dict = None) -> dict:
         """
@@ -74,7 +74,7 @@ LinkedIn Search Snippets:
 Create the LinkedIn strategy brief. Ensure the JSON is clean and valid.
 """
         try:
-            insights = self.gemini.generate_json(system_prompt, user_prompt, temperature=0.3)
+            insights = self.ai_client.generate_json(system_prompt, user_prompt, temperature=0.3)
             # Ensure url is set
             if not insights.get("linkedin_url") or "linkedin.com" not in insights.get("linkedin_url", ""):
                 insights["linkedin_url"] = linkedin_url or f"https://www.linkedin.com/in/{name.lower().replace(' ', '-')}"

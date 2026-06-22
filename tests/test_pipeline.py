@@ -3,13 +3,13 @@ import unittest
 from unittest.mock import MagicMock, patch
 from middleware.orchestrator import Orchestrator
 from middleware.state_manager import StateManager
-from middleware.gemini_client import GeminiClient
+from middleware.ai_client import AIClient
 from config.settings import OUTPUT_DIR
 
 class TestPipeline(unittest.TestCase):
     def setUp(self):
         self.campaign_id = "test_camp_123"
-        self.mock_gemini = MagicMock(spec=GeminiClient)
+        self.mock_ai = MagicMock(spec=AIClient)
         
         # Patch search functions to avoid real network requests
         self.patcher_search_person = patch('agents.prospecting_agent.search_person', return_value=["search snippet"])
@@ -54,7 +54,7 @@ class TestPipeline(unittest.TestCase):
         then prospect processing through all agents with research_plan guidance.
         """
         # Set up mock JSON returns for each step in the pipeline
-        self.mock_gemini.generate_json.side_effect = [
+        self.mock_ai.generate_json.side_effect = [
             # OrchestratorAgent.analyze_prompt call
             {
                 "research_focus": "Find their tech stack and service offerings",
@@ -86,14 +86,14 @@ class TestPipeline(unittest.TestCase):
                 "company_summary": "Google is web giant.",
                 "recent_news": ["AI updates"],
                 "pain_points": ["Competition"],
-                "talking_points": ["Congrats on Gemini 2.0"],
+                "talking_points": ["Congrats on the AI launch"],
                 "custom_alignment": "Aligns well with sustainability objective."
             },
             # Copywriter Agent call
             {
                 "subject": "Outreach to Sundar",
-                "body": "Hi Sundar, congrats on Gemini 2.0...",
-                "personalization_hooks": ["Gemini 2.0"]
+                "body": "Hi Sundar, congrats on the AI launch...",
+                "personalization_hooks": ["AI launch"]
             },
             # Proofreader Agent call
             {
@@ -122,7 +122,7 @@ class TestPipeline(unittest.TestCase):
         
         StateManager.init_campaign(self.campaign_id, prospects, settings)
         
-        orchestrator = Orchestrator(gemini_client=self.mock_gemini)
+        orchestrator = Orchestrator(ai_client=self.mock_ai)
         
         # Run Campaign
         orchestrator.run_campaign(self.campaign_id)
@@ -148,7 +148,7 @@ class TestPipeline(unittest.TestCase):
         Tests the self-correcting loop: proofreader rejects the first draft (score < 8),
         copywriter revises, proofreader approves the second draft.
         """
-        self.mock_gemini.generate_json.side_effect = [
+        self.mock_ai.generate_json.side_effect = [
             # OrchestratorAgent.analyze_prompt call
             {
                 "research_focus": "Find service alignment",
@@ -188,7 +188,7 @@ class TestPipeline(unittest.TestCase):
         }
         
         StateManager.init_campaign(self.campaign_id, prospects, settings)
-        orchestrator = Orchestrator(gemini_client=self.mock_gemini)
+        orchestrator = Orchestrator(ai_client=self.mock_ai)
         orchestrator.run_campaign(self.campaign_id)
         
         state = StateManager.load_state(self.campaign_id)
@@ -200,12 +200,12 @@ class TestPipeline(unittest.TestCase):
 
     def test_pipeline_rate_limit_abort(self):
         """
-        Tests that when a Gemini call fails with a rate limit error (429),
+        Tests that when a call fails with a rate limit error (429),
         the pipeline immediately terminates, marks campaign status as failed,
         and saves error_type as api_key_limit_reached.
         """
-        # Mock Gemini to raise an exception indicating rate limit / ResourceExhausted
-        self.mock_gemini.generate_json.side_effect = Exception("ResourceExhausted: 429 Quota exceeded")
+        # Mock the client call to raise an exception indicating rate limit
+        self.mock_ai.generate_json.side_effect = Exception("ResourceExhausted: 429 Quota exceeded")
 
         prospects = [
             {"name": "Sundar Pichai", "company": "Google", "title": "CEO", "email": "sundar@google.com"},
@@ -222,7 +222,7 @@ class TestPipeline(unittest.TestCase):
         }
 
         StateManager.init_campaign(self.campaign_id, prospects, settings)
-        orchestrator = Orchestrator(gemini_client=self.mock_gemini)
+        orchestrator = Orchestrator(ai_client=self.mock_ai)
 
         # Running should raise the exception due to our immediate re-raise
         with self.assertRaises(Exception) as context:

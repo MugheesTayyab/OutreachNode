@@ -1,12 +1,12 @@
 import logging
-from middleware.gemini_client import GeminiClient
+from middleware.ai_client import AIClient
 from tools.search_tool import search_person
 
 logger = logging.getLogger(__name__)
 
 class ProspectingAgent:
-    def __init__(self, gemini_client: GeminiClient):
-        self.gemini = gemini_client
+    def __init__(self, ai_client: AIClient):
+        self.ai_client = ai_client
 
     def run(self, raw_prospect: dict) -> dict:
         """
@@ -46,7 +46,7 @@ Web Search Context:
 Create the structured professional profile. Ensure the JSON is clean and valid.
 """
         try:
-            profile = self.gemini.generate_json(system_prompt, user_prompt, temperature=0.3)
+            profile = self.ai_client.generate_json(system_prompt, user_prompt, temperature=0.3)
             # Ensure basic fields remain intact if LLM misses them
             profile["name"] = profile.get("name") or name
             profile["title"] = profile.get("title") or title

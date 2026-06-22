@@ -343,7 +343,7 @@ function initPipelinePolling(campaignId) {
                 if (state.error_type === 'api_key_limit_reached') {
                     showErrorModal(
                         'API Key / Limit Reached',
-                        'The agent network has suspended operations. The Gemini API Key might be invalid, not set, or the request rate limit was reached.',
+                        'The agent network has suspended operations. The API Key might be invalid, not set, or the request rate limit was reached.',
                         state.error_message || 'Quota exceeded (429) or invalid API Key.'
                     );
                 } else {

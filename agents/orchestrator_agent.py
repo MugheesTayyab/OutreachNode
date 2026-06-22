@@ -1,5 +1,5 @@
 import logging
-from middleware.gemini_client import GeminiClient
+from middleware.ai_client import AIClient
 
 logger = logging.getLogger(__name__)
 
@@ -11,8 +11,8 @@ class OrchestratorAgent:
     (LinkedIn, Web/Context, Copywriter, Proofreader).
     """
 
-    def __init__(self, gemini_client: GeminiClient):
-        self.gemini = gemini_client
+    def __init__(self, ai_client: AIClient):
+        self.ai_client = ai_client
 
     def analyze_prompt(self, outreach_prompt: str, settings: dict) -> dict:
         """
@@ -72,7 +72,7 @@ Sender Context:
 Analyze this outreach prompt and generate the research plan. The plan must enable the downstream agents to find exactly the right information to write compelling, prompt-aligned cold emails.
 """
         try:
-            plan = self.gemini.generate_json(system_prompt, user_prompt, temperature=0.3)
+            plan = self.ai_client.generate_json(system_prompt, user_prompt, temperature=0.3)
 
             # Validate and ensure all required keys exist with sensible defaults
             plan["research_focus"] = plan.get("research_focus") or (

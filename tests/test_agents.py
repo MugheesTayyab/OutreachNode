@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from middleware.gemini_client import GeminiClient
+from middleware.ai_client import AIClient
 from agents.prospecting_agent import ProspectingAgent
 from agents.context_agent import ContextAgent
 from agents.copywriter_agent import CopywriterAgent
@@ -9,7 +9,7 @@ from agents.orchestrator_agent import OrchestratorAgent
 
 class TestAgents(unittest.TestCase):
     def setUp(self):
-        self.mock_gemini = MagicMock(spec=GeminiClient)
+        self.mock_ai = MagicMock(spec=AIClient)
         
         # Patch search functions to avoid real network requests
         self.patcher_search_person = patch('agents.prospecting_agent.search_person', return_value=["search snippet"])
@@ -36,8 +36,8 @@ class TestAgents(unittest.TestCase):
         self.patcher_ddgs.stop()
 
     def test_orchestrator_agent(self):
-        agent = OrchestratorAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.return_value = {
+        agent = OrchestratorAgent(self.mock_ai)
+        self.mock_ai.generate_json.return_value = {
             "research_focus": "Find their tech stack and service gaps",
             "linkedin_priority": "medium",
             "web_priority": "high",
@@ -54,11 +54,11 @@ class TestAgents(unittest.TestCase):
         self.assertEqual(plan["web_priority"], "high")
         self.assertIn("original_prompt", plan)
         self.assertEqual(plan["original_prompt"], "Pitch our AI solutions")
-        self.mock_gemini.generate_json.assert_called_once()
+        self.mock_ai.generate_json.assert_called_once()
 
     def test_orchestrator_agent_fallback(self):
-        agent = OrchestratorAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.side_effect = Exception("API Error")
+        agent = OrchestratorAgent(self.mock_ai)
+        self.mock_ai.generate_json.side_effect = Exception("API Error")
         
         plan = agent.analyze_prompt("Pitch our services", {"tone": "formal"})
         
@@ -68,8 +68,8 @@ class TestAgents(unittest.TestCase):
         self.assertEqual(plan["original_prompt"], "Pitch our services")
 
     def test_prospecting_agent(self):
-        agent = ProspectingAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.return_value = {
+        agent = ProspectingAgent(self.mock_ai)
+        self.mock_ai.generate_json.return_value = {
             "name": "Sundar Pichai",
             "title": "CEO",
             "company": "Google",
@@ -83,12 +83,12 @@ class TestAgents(unittest.TestCase):
         
         self.assertEqual(profile["name"], "Sundar Pichai")
         self.assertEqual(profile["company"], "Google")
-        self.mock_gemini.generate_json.assert_called_once()
+        self.mock_ai.generate_json.assert_called_once()
 
     def test_linkedin_agent(self):
         from agents.linkedin_agent import LinkedInAgent
-        agent = LinkedInAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.return_value = {
+        agent = LinkedInAgent(self.mock_ai)
+        self.mock_ai.generate_json.return_value = {
             "linkedin_url": "https://linkedin.com/in/sundarpichai",
             "linkedin_summary": "Sundar Pichai LinkedIn summary.",
             "linkedin_insights": ["Focused on AI growth"]
@@ -98,12 +98,12 @@ class TestAgents(unittest.TestCase):
         insights = agent.run(prospect_profile)
         
         self.assertEqual(insights["linkedin_url"], "https://linkedin.com/in/sundarpichai")
-        self.mock_gemini.generate_json.assert_called_once()
+        self.mock_ai.generate_json.assert_called_once()
 
     def test_linkedin_agent_with_research_plan(self):
         from agents.linkedin_agent import LinkedInAgent
-        agent = LinkedInAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.return_value = {
+        agent = LinkedInAgent(self.mock_ai)
+        self.mock_ai.generate_json.return_value = {
             "linkedin_url": "https://linkedin.com/in/sundarpichai",
             "linkedin_summary": "CEO driving AI initiatives.",
             "linkedin_insights": ["Focused on AI growth"]
@@ -128,8 +128,8 @@ class TestAgents(unittest.TestCase):
             self.assertEqual(insights["linkedin_url"], "https://linkedin.com/in/sundarpichai")
 
     def test_context_agent(self):
-        agent = ContextAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.return_value = {
+        agent = ContextAgent(self.mock_ai)
+        self.mock_ai.generate_json.return_value = {
             "company_summary": "Google is a tech company.",
             "recent_news": ["AI growth"],
             "pain_points": ["Regulations"],
@@ -141,11 +141,11 @@ class TestAgents(unittest.TestCase):
         brief = agent.run(prospect_profile, {}, {"custom_prompt": "Sell cloud"})
         
         self.assertEqual(brief["company_summary"], "Google is a tech company.")
-        self.mock_gemini.generate_json.assert_called_once()
+        self.mock_ai.generate_json.assert_called_once()
 
     def test_context_agent_with_research_plan(self):
-        agent = ContextAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.return_value = {
+        agent = ContextAgent(self.mock_ai)
+        self.mock_ai.generate_json.return_value = {
             "company_summary": "Google is a tech company.",
             "recent_news": ["AI growth"],
             "pain_points": ["Regulations"],
@@ -167,8 +167,8 @@ class TestAgents(unittest.TestCase):
         self.assertEqual(brief["company_summary"], "Google is a tech company.")
 
     def test_copywriter_agent(self):
-        agent = CopywriterAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.return_value = {
+        agent = CopywriterAgent(self.mock_ai)
+        self.mock_ai.generate_json.return_value = {
             "subject": "Outreach",
             "body": "Hello Sundar...",
             "personalization_hooks": ["AI work"]
@@ -176,14 +176,14 @@ class TestAgents(unittest.TestCase):
         
         email = agent.run({"name": "Sundar", "company": "Google"}, {}, {}, {})
         self.assertEqual(email["subject"], "Outreach")
-        self.mock_gemini.generate_json.assert_called_once()
+        self.mock_ai.generate_json.assert_called_once()
 
     def test_copywriter_agent_with_research_plan(self):
-        agent = CopywriterAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.return_value = {
+        agent = CopywriterAgent(self.mock_ai)
+        self.mock_ai.generate_json.return_value = {
             "subject": "AI Partnership with Google",
             "body": "Hello Sundar, regarding your AI initiatives...",
-            "personalization_hooks": ["AI leadership", "Gemini launch"]
+            "personalization_hooks": ["AI leadership", "AI launch"]
         }
         
         research_plan = {
@@ -197,8 +197,8 @@ class TestAgents(unittest.TestCase):
         self.assertEqual(email["subject"], "AI Partnership with Google")
 
     def test_proofreader_agent(self):
-        agent = ProofreaderAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.return_value = {
+        agent = ProofreaderAgent(self.mock_ai)
+        self.mock_ai.generate_json.return_value = {
             "approved": True,
             "relevance_score": 9,
             "tone_score": 9,
@@ -213,11 +213,11 @@ class TestAgents(unittest.TestCase):
         self.assertTrue(evaluation["approved"])
         self.assertEqual(evaluation["score"], 9)
         self.assertEqual(evaluation["relevance_score"], 9)
-        self.mock_gemini.generate_json.assert_called_once()
+        self.mock_ai.generate_json.assert_called_once()
 
     def test_proofreader_agent_with_research_plan(self):
-        agent = ProofreaderAgent(self.mock_gemini)
-        self.mock_gemini.generate_json.return_value = {
+        agent = ProofreaderAgent(self.mock_ai)
+        self.mock_ai.generate_json.return_value = {
             "approved": False,
             "relevance_score": 5,
             "tone_score": 8,

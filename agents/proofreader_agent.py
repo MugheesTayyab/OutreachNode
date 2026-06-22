@@ -1,11 +1,11 @@
 import logging
-from middleware.gemini_client import GeminiClient
+from middleware.ai_client import AIClient
 
 logger = logging.getLogger(__name__)
 
 class ProofreaderAgent:
-    def __init__(self, gemini_client: GeminiClient):
-        self.gemini = gemini_client
+    def __init__(self, ai_client: AIClient):
+        self.ai_client = ai_client
 
     def run(self, draft_email: dict, prospect_profile: dict, linkedin_data: dict, company_context: dict, campaign_settings: dict = None, research_plan: dict = None) -> dict:
         """
@@ -104,7 +104,7 @@ Company Context (Ground Truth):
 Please perform the review and output the JSON.
 """
         try:
-            res = self.gemini.generate_json(system_prompt, user_prompt, temperature=0.2)
+            res = self.ai_client.generate_json(system_prompt, user_prompt, temperature=0.2)
             # Guarantee structure
             res["approved"] = res.get("approved", False)
             res["score"] = res.get("score", 5)

@@ -1,14 +1,14 @@
 import logging
 from duckduckgo_search import DDGS
-from middleware.gemini_client import GeminiClient
+from middleware.ai_client import AIClient
 from tools.search_tool import search_company_news
 from tools.wiki_tool import get_company_summary
 
 logger = logging.getLogger(__name__)
 
 class ContextAgent:
-    def __init__(self, gemini_client: GeminiClient):
-        self.gemini = gemini_client
+    def __init__(self, ai_client: AIClient):
+        self.ai_client = ai_client
 
     def run(self, prospect_profile: dict, linkedin_data: dict = None, campaign_settings: dict = None, research_plan: dict = None) -> dict:
         """
@@ -61,7 +61,7 @@ class ContextAgent:
         except Exception as e:
             logger.error(f"Error finding website for {company}: {str(e)}")
 
-        # 3. Determine search queries — use orchestrator plan if available, otherwise generate via Gemini
+        # 3. Determine search queries — use orchestrator plan if available, otherwise generate via AI
         queries = []
         
         if research_plan.get("web_search_queries"):
@@ -72,7 +72,7 @@ class ContextAgent:
                 for q in research_plan["web_search_queries"][:3]
             ]
         else:
-            # Fallback: Ask Gemini to generate queries (original behavior)
+            # Fallback: Ask AI to generate queries (original behavior)
             system_gen_prompt = """
 You are an expert search specialist. Your job is to output 2-3 search queries that will help find deep information on a company's website about their services, technology stack, and how they align with a specific outreach prompt.
 Output only the search queries, one per line. Do not include numbers, bullet points, quotes, or any extra text.
@@ -86,7 +86,7 @@ Outreach Objective / Custom Prompt:
 {original_prompt}
 """
             try:
-                queries_text = self.gemini.generate(system_gen_prompt, user_gen_prompt, temperature=0.3)
+                queries_text = self.ai_client.generate(system_gen_prompt, user_gen_prompt, temperature=0.3)
                 queries = [q.strip() for q in queries_text.split("\n") if q.strip()]
             except Exception as e:
                 logger.error(f"Failed to generate custom queries for {company}: {str(e)}")
@@ -157,7 +157,7 @@ Website Deep Search context:
 Create the strategy brief. Ensure the JSON is clean and valid.
 """
         try:
-            brief = self.gemini.generate_json(system_prompt, user_prompt, temperature=0.3)
+            brief = self.ai_client.generate_json(system_prompt, user_prompt, temperature=0.3)
             # Ensure keys exist
             brief["company_summary"] = brief.get("company_summary") or f"{company} is a leading player in its industry."
             brief["recent_news"] = brief.get("recent_news") or [f"Continuing operations and product development at {company}."]

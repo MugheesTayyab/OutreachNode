@@ -47,11 +47,11 @@ pip install -r requirements.txt
 ### 2. Configure Credentials
 Copy `.env.example` to `.env` and fill in your details:
 ```env
-GEMINI_API_KEY=your_google_gemini_api_key_here
+API_KEY=your_unlimited_surf_or_openai_api_key_here
 SMTP_EMAIL=your_email@gmail.com
 SMTP_PASSWORD=your_gmail_app_password_here
 ```
-*Note: A Google Gemini API key is required (available for free in Google AI Studio). If SMTP settings are left blank, the app runs in Mock/Development mode and logs sent emails to console.*
+*Note: An API key is required (e.g. from Unlimited Surf, OpenRouter, or OpenAI). If SMTP settings are left blank, the app runs in Mock/Development mode and logs sent emails to console.*
 
 ### 3. Launch the Application
 Start the Flask server:

@@ -1,11 +1,11 @@
 import logging
-from middleware.gemini_client import GeminiClient
+from middleware.ai_client import AIClient
 
 logger = logging.getLogger(__name__)
 
 class CopywriterAgent:
-    def __init__(self, gemini_client: GeminiClient):
-        self.gemini = gemini_client
+    def __init__(self, ai_client: AIClient):
+        self.ai_client = ai_client
 
     def run(self, prospect_profile: dict, linkedin_data: dict, company_context: dict, campaign_settings: dict, research_plan: dict = None) -> dict:
         """
@@ -91,7 +91,7 @@ Campaign Settings:
 Write the email and output the JSON.
 """
         try:
-            return self.gemini.generate_json(system_prompt, user_prompt, temperature=0.7)
+            return self.ai_client.generate_json(system_prompt, user_prompt, temperature=0.7)
         except Exception as e:
             logger.error(f"Copywriter Agent generation failed: {str(e)}")
             from middleware.orchestrator import is_api_key_or_rate_limit_error
@@ -167,7 +167,7 @@ Campaign Settings:
 Please revise the email to address all points in the critique. Output the clean JSON.
 """
         try:
-            return self.gemini.generate_json(system_prompt, user_prompt, temperature=0.5)
+            return self.ai_client.generate_json(system_prompt, user_prompt, temperature=0.5)
         except Exception as e:
             logger.error(f"Copywriter Agent revision failed: {str(e)}")
             from middleware.orchestrator import is_api_key_or_rate_limit_error

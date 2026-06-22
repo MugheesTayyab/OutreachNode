@@ -13,12 +13,13 @@ else:
     load_dotenv(override=True)
 
 # API Keys & Credentials
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+API_KEY = os.getenv("API_KEY") or os.getenv("GEMINI_API_KEY", "")
+GEMINI_API_KEY = API_KEY  # Alias for compatibility
 SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 
 # Config Parameters
-MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.0-flash")
+MODEL_NAME = os.getenv("MODEL_NAME", "gateway-claude-opus-4-8")
 MAX_RETRIES = 3
 
 # Paths

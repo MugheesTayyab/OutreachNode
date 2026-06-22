@@ -2,7 +2,7 @@ import os
 import logging
 import time
 from config.settings import OUTPUT_DIR
-from middleware.gemini_client import GeminiClient
+from middleware.ai_client import AIClient
 from middleware.state_manager import StateManager
 from agents.prospecting_agent import ProspectingAgent
 from agents.linkedin_agent import LinkedInAgent
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def is_api_key_or_rate_limit_error(exception: Exception) -> bool:
     err_str = str(exception).lower()
-    # Check for Google Gemini API key or rate limit indicators
+    # Check for API key or rate limit indicators
     indicators = [
         "429", "resourceexhausted", "quota", "rate limit", 
         "limit exceeded", "api key", "api_key", "invalid key", "not valid",
@@ -26,14 +26,14 @@ def is_api_key_or_rate_limit_error(exception: Exception) -> bool:
     return any(ind in err_str for ind in indicators)
 
 class Orchestrator:
-    def __init__(self, gemini_client: GeminiClient = None):
-        self.gemini = gemini_client or GeminiClient()
-        self.orchestrator_agent = OrchestratorAgent(self.gemini)
-        self.prospecting_agent = ProspectingAgent(self.gemini)
-        self.linkedin_agent = LinkedInAgent(self.gemini)
-        self.context_agent = ContextAgent(self.gemini)
-        self.copywriter_agent = CopywriterAgent(self.gemini)
-        self.proofreader_agent = ProofreaderAgent(self.gemini)
+    def __init__(self, ai_client: AIClient = None):
+        self.ai_client = ai_client or AIClient()
+        self.orchestrator_agent = OrchestratorAgent(self.ai_client)
+        self.prospecting_agent = ProspectingAgent(self.ai_client)
+        self.linkedin_agent = LinkedInAgent(self.ai_client)
+        self.context_agent = ContextAgent(self.ai_client)
+        self.copywriter_agent = CopywriterAgent(self.ai_client)
+        self.proofreader_agent = ProofreaderAgent(self.ai_client)
 
     def run_campaign(self, campaign_id: str, callback_fn=None):
         """

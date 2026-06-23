@@ -6,7 +6,7 @@ It is a premium, 100% free multi-agent cold email campaign manager featuring rea
 ---
 
 
-* **Mughees Tayyab** (Sub-project Owner)
+* **Mughees Tayyab** 
 
 
 ---

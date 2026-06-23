@@ -5,10 +5,9 @@ It is a premium, 100% free multi-agent cold email campaign manager featuring rea
 
 ---
 
-## 👥 Original Team Members (UAV Lab Internship)
-* **Saliha Noor**
+
 * **Mughees Tayyab** (Sub-project Owner)
-* **Abuzar Ejaz**
+
 
 ---
 

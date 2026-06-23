@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}Orchestration Pipeline — GreenFactor Custom Cold Emailer{% endblock %}
+{% block title %}Orchestration Pipeline — Outreach Node Custom Cold Emailer{% endblock %}
 
 {% block content %}
 <section class="pipeline-header">
     <div class="header-details">
         <span class="campaign-tag">CAMPAIGN ID: <span id="campaign-id-display">{{ campaign_id }}</span></span>
         <h1>Multi-Agent Orchestration Layer</h1>
-        <p class="tagline">Visualizing real-time agent collaboration and the self-correcting critique loop.</p>
+        <p class="tagline">Real-time agent collaboration with self-correcting critique loop visualization.</p>
     </div>
     <div class="pipeline-loader">
         <div class="spinner"></div>
@@ -15,16 +15,12 @@
     </div>
 </section>
 
-<!-- Visual Stepper of Agents -->
-<div class="agent-stepper-container glass-card">
-    <div class="stepper-track"></div>
-    
+<div class="agent-stepper-container">
     <div class="step-card" id="step-orchestrator">
         <div class="step-icon"><i class="fa-solid fa-brain"></i></div>
         <div class="step-info">
-            <h3>Orchestrator Agent</h3>
+            <h3>Orchestrator</h3>
             <span class="role-badge">Strategist</span>
-            <p>Analyzes your outreach prompt & builds a targeted research plan for all agents.</p>
         </div>
         <div class="step-status"><i class="fa-solid fa-clock"></i> Pending</div>
     </div>
@@ -32,9 +28,8 @@
     <div class="step-card" id="step-prospecting">
         <div class="step-icon"><i class="fa-solid fa-user-zoom"></i></div>
         <div class="step-info">
-            <h3>Prospecting Agent</h3>
+            <h3>Prospecting</h3>
             <span class="role-badge">Researcher</span>
-            <p>Scrapes LinkedIn profiles & gathers professional credentials.</p>
         </div>
         <div class="step-status"><i class="fa-solid fa-clock"></i> Pending</div>
     </div>
@@ -42,9 +37,8 @@
     <div class="step-card" id="step-linkedin">
         <div class="step-icon"><i class="fa-brands fa-linkedin"></i></div>
         <div class="step-info">
-            <h3>LinkedIn Agent</h3>
+            <h3>LinkedIn</h3>
             <span class="role-badge">Social Intel</span>
-            <p>Performs prompt-guided LinkedIn research for prospect & company insights.</p>
         </div>
         <div class="step-status"><i class="fa-solid fa-clock"></i> Pending</div>
     </div>
@@ -52,9 +46,8 @@
     <div class="step-card" id="step-context">
         <div class="step-icon"><i class="fa-solid fa-briefcase"></i></div>
         <div class="step-info">
-            <h3>Web / Context Agent</h3>
+            <h3>Web / Context</h3>
             <span class="role-badge">Analyst</span>
-            <p>Gathers Wikipedia & DuckDuckGo company news to identify pain points.</p>
         </div>
         <div class="step-status"><i class="fa-solid fa-clock"></i> Pending</div>
     </div>
@@ -62,9 +55,8 @@
     <div class="step-card" id="step-copywriter">
         <div class="step-icon"><i class="fa-solid fa-pen-nib"></i></div>
         <div class="step-info">
-            <h3>Copywriter Agent</h3>
+            <h3>Copywriter</h3>
             <span class="role-badge">Synthesizer</span>
-            <p>Drafts hyper-personalized cold emails using collected intelligence.</p>
         </div>
         <div class="step-status"><i class="fa-solid fa-clock"></i> Pending</div>
     </div>
@@ -72,103 +64,56 @@
     <div class="step-card" id="step-proofreader">
         <div class="step-icon"><i class="fa-solid fa-shield-halved"></i></div>
         <div class="step-info">
-            <h3>Proofreader Agent</h3>
+            <h3>Proofreader</h3>
             <span class="role-badge">Fact-Checker</span>
-            <p>Fact-checks content against inputs and triggers self-correction loops.</p>
         </div>
         <div class="step-status"><i class="fa-solid fa-clock"></i> Pending</div>
     </div>
 </div>
 
-<!-- Live Agent Active Task Duration Timeline -->
-<div class="glass-card timeline-visualizer-card hidden" id="timeline-visualizer-card" style="margin-bottom: 30px;">
-    <div class="card-header" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; margin-bottom: 16px;">
-        <h2 style="font-size: 16px; font-weight: 700; color: var(--accent-purple); display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-timeline"></i> Active Agent Duration Timeline: <span id="timeline-prospect-name" style="color: var(--text-primary); font-weight: 800;">None</span>
+<div class="card hidden" id="timeline-visualizer-card" style="margin-bottom: 24px;">
+    <div class="card-header" style="padding-bottom: 12px; margin-bottom: 16px;">
+        <h2 style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-timeline"></i> Active Agent Duration Timeline: <span id="timeline-prospect-name" style="font-weight: 700; color: var(--text-primary);">None</span>
         </h2>
     </div>
-    <div class="timeline-container" style="display: flex; flex-wrap: wrap; gap: 20px; width: 100%;">
-        <!-- Orchestrator Agent -->
-        <div class="timeline-bar-wrapper" style="flex: 1; min-width: 160px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
-                <span style="font-weight: 600;"><i class="fa-solid fa-brain"></i> Orchestrator</span>
-                <span id="dur-orchestrator" style="font-family: monospace; font-weight: 700;">0.0s</span>
-            </div>
-            <div class="timeline-progress-track" style="height: 10px; background: rgba(148, 163, 184, 0.12); border-radius: 5px; overflow: hidden; position: relative;">
-                <div id="bar-orchestrator" class="timeline-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); border-radius: 5px; transition: width 0.3s ease;"></div>
-            </div>
+    <div class="timeline-container">
+        <div class="timeline-bar-wrapper">
+            <div><span style="font-weight: 500;"><i class="fa-solid fa-brain"></i> Orchestrator</span><span id="dur-orchestrator" style="font-family: monospace; font-weight: 600;">0.0s</span></div>
+            <div class="timeline-progress-track"><div id="bar-orchestrator" class="timeline-progress-fill" style="width: 0%;"></div></div>
         </div>
-        
-        <!-- Prospecting Agent -->
-        <div class="timeline-bar-wrapper" style="flex: 1; min-width: 160px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
-                <span style="font-weight: 600;"><i class="fa-solid fa-user-zoom"></i> Prospecting</span>
-                <span id="dur-prospecting" style="font-family: monospace; font-weight: 700;">0.0s</span>
-            </div>
-            <div class="timeline-progress-track" style="height: 10px; background: rgba(148, 163, 184, 0.12); border-radius: 5px; overflow: hidden; position: relative;">
-                <div id="bar-prospecting" class="timeline-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); border-radius: 5px; transition: width 0.3s ease;"></div>
-            </div>
+        <div class="timeline-bar-wrapper">
+            <div><span style="font-weight: 500;"><i class="fa-solid fa-user-zoom"></i> Prospecting</span><span id="dur-prospecting" style="font-family: monospace; font-weight: 600;">0.0s</span></div>
+            <div class="timeline-progress-track"><div id="bar-prospecting" class="timeline-progress-fill" style="width: 0%;"></div></div>
         </div>
-        
-        <!-- LinkedIn Agent -->
-        <div class="timeline-bar-wrapper" style="flex: 1; min-width: 160px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
-                <span style="font-weight: 600;"><i class="fa-brands fa-linkedin"></i> LinkedIn</span>
-                <span id="dur-linkedin" style="font-family: monospace; font-weight: 700;">0.0s</span>
-            </div>
-            <div class="timeline-progress-track" style="height: 10px; background: rgba(148, 163, 184, 0.12); border-radius: 5px; overflow: hidden; position: relative;">
-                <div id="bar-linkedin" class="timeline-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); border-radius: 5px; transition: width 0.3s ease;"></div>
-            </div>
+        <div class="timeline-bar-wrapper">
+            <div><span style="font-weight: 500;"><i class="fa-brands fa-linkedin"></i> LinkedIn</span><span id="dur-linkedin" style="font-family: monospace; font-weight: 600;">0.0s</span></div>
+            <div class="timeline-progress-track"><div id="bar-linkedin" class="timeline-progress-fill" style="width: 0%;"></div></div>
         </div>
-        
-        <!-- Context Agent -->
-        <div class="timeline-bar-wrapper" style="flex: 1; min-width: 160px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
-                <span style="font-weight: 600;"><i class="fa-solid fa-briefcase"></i> Web/Context</span>
-                <span id="dur-context" style="font-family: monospace; font-weight: 700;">0.0s</span>
-            </div>
-            <div class="timeline-progress-track" style="height: 10px; background: rgba(148, 163, 184, 0.12); border-radius: 5px; overflow: hidden; position: relative;">
-                <div id="bar-context" class="timeline-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); border-radius: 5px; transition: width 0.3s ease;"></div>
-            </div>
+        <div class="timeline-bar-wrapper">
+            <div><span style="font-weight: 500;"><i class="fa-solid fa-briefcase"></i> Web/Context</span><span id="dur-context" style="font-family: monospace; font-weight: 600;">0.0s</span></div>
+            <div class="timeline-progress-track"><div id="bar-context" class="timeline-progress-fill" style="width: 0%;"></div></div>
         </div>
-        
-        <!-- Copywriting Agent -->
-        <div class="timeline-bar-wrapper" style="flex: 1; min-width: 160px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
-                <span style="font-weight: 600;"><i class="fa-solid fa-pen-nib"></i> Copywriter</span>
-                <span id="dur-copywriting" style="font-family: monospace; font-weight: 700;">0.0s</span>
-            </div>
-            <div class="timeline-progress-track" style="height: 10px; background: rgba(148, 163, 184, 0.12); border-radius: 5px; overflow: hidden; position: relative;">
-                <div id="bar-copywriting" class="timeline-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); border-radius: 5px; transition: width 0.3s ease;"></div>
-            </div>
+        <div class="timeline-bar-wrapper">
+            <div><span style="font-weight: 500;"><i class="fa-solid fa-pen-nib"></i> Copywriter</span><span id="dur-copywriting" style="font-family: monospace; font-weight: 600;">0.0s</span></div>
+            <div class="timeline-progress-track"><div id="bar-copywriting" class="timeline-progress-fill" style="width: 0%;"></div></div>
         </div>
-        
-        <!-- Proofreader Agent -->
-        <div class="timeline-bar-wrapper" style="flex: 1; min-width: 160px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
-                <span style="font-weight: 600;"><i class="fa-solid fa-shield-halved"></i> Proofreader</span>
-                <span id="dur-proofreading" style="font-family: monospace; font-weight: 700;">0.0s</span>
-            </div>
-            <div class="timeline-progress-track" style="height: 10px; background: rgba(148, 163, 184, 0.12); border-radius: 5px; overflow: hidden; position: relative;">
-                <div id="bar-proofreading" class="timeline-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); border-radius: 5px; transition: width 0.3s ease;"></div>
-            </div>
+        <div class="timeline-bar-wrapper">
+            <div><span style="font-weight: 500;"><i class="fa-solid fa-shield-halved"></i> Proofreader</span><span id="dur-proofreading" style="font-family: monospace; font-weight: 600;">0.0s</span></div>
+            <div class="timeline-progress-track"><div id="bar-proofreading" class="timeline-progress-fill" style="width: 0%;"></div></div>
         </div>
     </div>
 </div>
 
 <div class="pipeline-grid">
-    <!-- Active Prospect Tracking List -->
-    <div class="glass-card prospect-tracking-card">
+    <div class="card prospect-tracking-card">
         <div class="card-header">
             <h2><i class="fa-solid fa-users-gear"></i> Prospect Pipeline Status</h2>
         </div>
-        <div class="prospects-running-list" id="prospects-running-list">
-            <!-- Dynamically populated prospect cards with current stage -->
-        </div>
+        <div class="prospects-running-list" id="prospects-running-list"></div>
     </div>
 
-    <!-- Live Execution Logs (Terminal-style) -->
-    <div class="glass-card terminal-card">
+    <div class="card terminal-card">
         <div class="card-header">
             <h2><i class="fa-solid fa-terminal"></i> Live Execution Logs</h2>
             <div class="terminal-dots">
@@ -185,8 +130,8 @@
     </div>
 </div>
 
-<div class="pipeline-actions hidden" id="pipeline-completion-actions">
-    <div class="glass-card completion-card">
+<div class="hidden" id="pipeline-completion-actions" style="margin-bottom: 32px;">
+    <div class="completion-card">
         <div class="completion-content">
             <i class="fa-solid fa-circle-check completion-icon"></i>
             <div>
@@ -202,30 +147,27 @@
     </div>
 </div>
 
-<!-- API Error Modal -->
 <div class="modal-backdrop hidden" id="error-modal">
-    <div class="glass-card modal-container" style="max-width: 500px; margin: auto;">
-        <div class="modal-header" style="border-bottom: 1px solid rgba(220, 38, 38, 0.2);">
-            <h3 style="color: var(--danger); display: flex; align-items: center; gap: 10px;">
-                <i class="fa-solid fa-triangle-exclamation"></i> Critical Pipeline Failure
-            </h3>
+    <div class="modal-container" style="max-width: 480px;">
+        <div class="modal-header">
+            <h3 style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Critical Pipeline Failure</h3>
             <button class="modal-close-btn" onclick="closeErrorModal()">&times;</button>
         </div>
-        <div class="modal-body" style="padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px;">
-            <div style="font-size: 48px; color: var(--danger);">
+        <div style="padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+            <div style="font-size: 40px; color: var(--danger);">
                 <i class="fa-solid fa-circle-exclamation"></i>
             </div>
-            <h4 id="error-modal-title" style="font-size: 18px; font-weight: 700; color: var(--text-primary);">API Key / Rate Limit Reached</h4>
-            <p id="error-modal-message" style="font-size: 14px; line-height: 1.5; color: var(--text-secondary);">
+            <h4 id="error-modal-title" style="font-size: 16px; font-weight: 600;">API Key / Rate Limit Reached</h4>
+            <p id="error-modal-message" style="font-size: 13px; line-height: 1.5; color: var(--text-secondary);">
                 The agents have stopped working. The API Key might be invalid, or the request rate limit has been reached.
             </p>
-            <div id="error-modal-details" style="width: 100%; background: rgba(220, 38, 38, 0.04); border: 1px solid rgba(220, 38, 38, 0.1); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; text-align: left; max-height: 120px; overflow-y: auto; color: var(--danger); word-break: break-all;">
+            <div id="error-modal-details" style="width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: 'SF Mono', monospace; font-size: 12px; text-align: left; max-height: 100px; overflow-y: auto; color: var(--danger); word-break: break-all;">
                 No details available.
             </div>
         </div>
-        <div class="modal-footer" style="justify-content: center; gap: 12px; border-top: 1px solid var(--glass-border); padding: 16px 24px;">
+        <div class="modal-footer" style="justify-content: center; gap: 8px;">
             <button class="btn btn-secondary" onclick="closeErrorModal()">Close</button>
-            <a href="/" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger); box-shadow: 0 4px 16px rgba(220, 38, 38, 0.15);">Go to Dashboard</a>
+            <a href="/" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger);">Go to Dashboard</a>
         </div>
     </div>
 </div>
@@ -234,7 +176,6 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Start polling pipeline status for the active campaign
         initPipelinePolling("{{ campaign_id }}");
     });
 </script>

@@ -8,6 +8,7 @@ from config.settings import BASE_DIR, INPUT_DIR, OUTPUT_DIR, AUDIO_DIR
 from tools.excel_tool import read_csv
 from tools.email_tool import send_email
 from tools.tts_tool import generate_audio
+from tools.document_tool import extract_text
 from middleware.state_manager import StateManager
 from middleware.orchestrator import Orchestrator
 
@@ -16,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'greenfactor-secret-key-12345'
+app.config['SECRET_KEY'] = 'outreachnode-secret-key-12345'
 app.config['UPLOAD_FOLDER'] = INPUT_DIR
 
 # Keep track of active campaigns running in threads
@@ -59,6 +60,40 @@ def results(campaign_id):
         return redirect(url_for('dashboard'))
     return render_template('results.html', campaign=state)
 
+@app.route('/api/upload-prompt-doc', methods=['POST'])
+def api_upload_prompt_doc():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    allowed_exts = ('.pdf', '.docx', '.txt')
+    if not file.filename.lower().endswith(allowed_exts):
+        return jsonify({"error": "Invalid format. Allowed: PDF, DOCX, TXT"}), 400
+
+    filename = secure_filename(f"promptdoc_{uuid.uuid4()}_{file.filename}")
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+
+    try:
+        text = extract_text(filepath)
+        if not text.strip():
+            return jsonify({"error": "No readable text found in document"}), 400
+        max_chars = 15000
+        if len(text) > max_chars:
+            text = text[:max_chars] + "\n\n[...content truncated to fit context window]"
+        return jsonify({
+            "filename": file.filename,
+            "content": text,
+            "length": len(text)
+        })
+    except Exception as e:
+        logger.error(f"Failed to parse prompt document: {str(e)}")
+        return jsonify({"error": f"Failed to read document: {str(e)}"}), 500
+
+
 @app.route('/api/upload', methods=['POST'])
 def api_upload():
     if 'file' not in request.files:
@@ -75,12 +110,15 @@ def api_upload():
         file.save(filepath)
         
         try:
+            from tools.excel_tool import get_csv_preview
+            headers, preview_data = get_csv_preview(filepath)
             prospects = read_csv(filepath)
             # Return first 5 for preview
             return jsonify({
                 "filepath": filepath,
                 "count": len(prospects),
-                "preview": prospects[:5]
+                "headers": headers,
+                "preview": preview_data
             })
         except Exception as e:
             return jsonify({"error": f"Failed to parse file: {str(e)}"}), 500
@@ -105,11 +143,13 @@ def api_start():
     settings = {
         "sender_name": data.get("sender_name", "Mughees Tayyab"),
         "sender_role": data.get("sender_role", "Founder"),
-        "sender_company": data.get("sender_company", "GreenFactor"),
+        "sender_company": data.get("sender_company") or "Outreach Node",
         "tone": data.get("tone", "friendly"),
         "goal": data.get("goal", "partnership"),
         "custom_prompt": data.get("custom_prompt", ""),
-        "auto_generate_audio": data.get("auto_generate_audio", False)
+        "auto_generate_audio": data.get("auto_generate_audio", False),
+        "prompt_doc_content": data.get("prompt_doc_content", ""),
+        "prompt_doc_filename": data.get("prompt_doc_filename", "")
     }
     
     # Initialize state

@@ -1,4 +1,4 @@
-# GreenFactor — Custom Cold Emailer 🌿
+# Outreach Node — Custom Cold Emailer
 
 This project is a sub-project developed as part of our **UAV Lab Internship** by **Mughees Tayyab**. 
 It is a premium, 100% free multi-agent cold email campaign manager featuring real-time orchestration, a self-correcting critique loop, and Google Text-to-Speech (gTTS) voicemail generation.

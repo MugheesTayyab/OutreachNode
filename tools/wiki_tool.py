@@ -19,7 +19,7 @@ def get_company_summary(company_name: str) -> str:
             "format": "json",
             "utf8": 1
         }
-        headers = {"User-Agent": "GreenFactorColdEmailer/1.0 (contact: admin@greenfactor.io)"}
+        headers = {"User-Agent": "OutreachNodeColdEmailer/1.0 (contact: admin@outreachnode.io)"}
         
         search_res = requests.get(search_url, params=search_params, headers=headers, timeout=5)
         search_res.raise_for_status()

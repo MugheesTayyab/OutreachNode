@@ -1,11 +1,12 @@
 /* ==========================================================================
-   GREENFACTOR - FRONTEND JAVASCRIPT INTERACTIONS
+   OUTREACH NODE - FRONTEND JAVASCRIPT INTERACTIONS
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
     initDragAndDrop();
     initCampaignForm();
     initResultsFilter();
+    initPromptDocUpload();
 });
 
 // Global state for preview modal
@@ -113,20 +114,55 @@ function initDragAndDrop() {
             filepathInput.value = data.filepath;
             prospectCount.innerText = data.count;
 
-            // Render Preview Table
-            previewTbody.innerHTML = '';
-            data.preview.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${row.name || '—'}</strong></td>
-                    <td>${row.company || '—'}</td>
-                    <td>${row.title || '—'}</td>
-                    <td>${row.email || '—'}</td>
-                `;
-                previewTbody.appendChild(tr);
-            });
+            // Render Preview Table dynamically based on columns
+            console.log("CSV parse data received:", data);
+            const table = document.getElementById('preview-table');
+            if (table) {
+                const thead = table.querySelector('thead');
+                const tbody = document.getElementById('preview-tbody');
+                
+                // Get headers (either from data.headers or fallback to keys of the first row)
+                let headers = data.headers;
+                if (!headers && data.preview && data.preview.length > 0) {
+                    headers = Object.keys(data.preview[0]);
+                }
+                
+                console.log("Rendering preview with headers:", headers);
 
-            previewContainer.classList.remove('hidden');
+                if (thead && headers) {
+                    thead.innerHTML = '';
+                    const trHead = document.createElement('tr');
+                    headers.forEach(header => {
+                        const th = document.createElement('th');
+                        th.innerText = header;
+                        trHead.appendChild(th);
+                    });
+                    thead.appendChild(trHead);
+                }
+
+                if (tbody && data.preview && headers) {
+                    tbody.innerHTML = '';
+                    data.preview.forEach((row, idx) => {
+                        console.log(`Rendering row ${idx}:`, row);
+                        const tr = document.createElement('tr');
+                        headers.forEach(header => {
+                            const td = document.createElement('td');
+                            const val = row[header];
+                            td.innerText = (val !== undefined && val !== null && val !== '') ? val : '—';
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+                }
+            } else {
+                console.error("Preview table element not found!");
+            }
+
+            if (previewContainer) {
+                previewContainer.classList.remove('hidden');
+            } else {
+                console.error("previewContainer element not found!");
+            }
             submitBtn.disabled = false;
             submitBtn.classList.remove('disabled-btn');
             showToast('File loaded and preview rendered successfully!', 'success');
@@ -158,7 +194,9 @@ function initCampaignForm() {
             tone: formData.get('tone'),
             goal: formData.get('goal'),
             custom_prompt: formData.get('custom_prompt'),
-            auto_generate_audio: form.querySelector('#auto_generate_audio').checked
+            auto_generate_audio: form.querySelector('#auto_generate_audio').checked,
+            prompt_doc_content: document.getElementById('prompt-doc-content')?.value || '',
+            prompt_doc_filename: document.getElementById('prompt-doc-filename-hidden')?.value || ''
         };
 
         showToast('Initializing multi-agent pipeline...', 'info');
@@ -184,6 +222,110 @@ function initCampaignForm() {
             showToast('Failed to launch campaign.', 'error');
         });
     });
+}
+
+/* ==========================================================================
+   DASHBOARD: PROMPT DOCUMENT UPLOAD
+   ========================================================================== */
+
+function initPromptDocUpload() {
+    const zone = document.getElementById('prompt-doc-zone');
+    const input = document.getElementById('prompt-doc-input');
+    const emptyState = document.getElementById('prompt-doc-empty');
+    const loadedState = document.getElementById('prompt-doc-loaded');
+    const loadingState = document.getElementById('prompt-doc-loading');
+    const filenameSpan = document.getElementById('prompt-doc-filename');
+    const filesizeSpan = document.getElementById('prompt-doc-filesize');
+    const removeBtn = document.getElementById('prompt-doc-remove');
+    const contentHidden = document.getElementById('prompt-doc-content');
+    const filenameHidden = document.getElementById('prompt-doc-filename-hidden');
+
+    if (!zone) return;
+
+    zone.addEventListener('click', (e) => {
+        if (e.target.closest('#prompt-doc-remove')) return;
+        if (loadedState.classList.contains('hidden')) {
+            input.click();
+        }
+    });
+
+    input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (!file) return;
+        uploadPromptDoc(file);
+    });
+
+    removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        input.value = '';
+        contentHidden.value = '';
+        filenameHidden.value = '';
+        loadedState.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        loadingState.classList.add('hidden');
+    });
+
+    // Drag-and-drop for doc zone
+    ['dragenter', 'dragover'].forEach(evt => {
+        zone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            zone.style.borderColor = 'var(--accent-purple)';
+            zone.style.background = 'rgba(79, 70, 229, 0.02)';
+        });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        zone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            zone.style.borderColor = '';
+            zone.style.background = '';
+        });
+    });
+    zone.addEventListener('drop', (e) => {
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const ext = '.' + file.name.split('.').pop().toLowerCase();
+        if (!['.pdf', '.docx', '.txt'].includes(ext)) {
+            showToast('Please attach a PDF, DOCX, or TXT file.', 'error');
+            return;
+        }
+        uploadPromptDoc(file);
+    });
+
+    function uploadPromptDoc(file) {
+        emptyState.classList.add('hidden');
+        loadedState.classList.add('hidden');
+        loadingState.classList.remove('hidden');
+
+        filenameSpan.innerText = file.name;
+        filesizeSpan.innerText = (file.size / 1024).toFixed(1) + ' KB';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/api/upload-prompt-doc', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            loadingState.classList.add('hidden');
+            if (data.error) {
+                showToast(data.error, 'error');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            contentHidden.value = data.content;
+            filenameHidden.value = data.filename;
+            loadedState.classList.remove('hidden');
+            showToast('Document content extracted and ready for AI agents.', 'success');
+        })
+        .catch(err => {
+            console.error(err);
+            loadingState.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            showToast('Failed to process document.', 'error');
+        });
+    }
 }
 
 /* ==========================================================================
@@ -325,7 +467,8 @@ function initPipelinePolling(campaignId) {
                     activeTimelineTimer = null;
                 }
                 globalStatusText.innerText = 'Completed';
-                document.querySelector('.pipeline-loader .spinner').style.display = 'none';
+                const spinnerEl = document.querySelector('.pipeline-loader .spinner');
+                if (spinnerEl) spinnerEl.style.display = 'none';
                 completionActions.classList.remove('hidden');
                 appendLogLine(`[SYSTEM] Campaign completed! Generated Excel spreadsheet. Ready for review.`, 'success-log');
                 showToast('Campaign successfully completed!', 'success');
@@ -336,7 +479,8 @@ function initPipelinePolling(campaignId) {
                     activeTimelineTimer = null;
                 }
                 globalStatusText.innerText = 'Failed';
-                document.querySelector('.pipeline-loader .spinner').style.display = 'none';
+                const spinnerFail = document.querySelector('.pipeline-loader .spinner');
+                if (spinnerFail) spinnerFail.style.display = 'none';
                 appendLogLine(`[SYSTEM ERROR] Campaign execution encountered a critical error and terminated.`, 'error-log');
                 showToast('Campaign execution failed.', 'error');
                 

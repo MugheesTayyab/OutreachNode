@@ -22,13 +22,17 @@ def read_csv(filepath: str) -> list[dict]:
     header_keywords = ["company", "name", "founder", "email", "linkedin", "title", "role"]
     
     # Let's see if we need to skip decorative top rows to find the actual header
+    col_values = [str(col).lower() for col in df.columns]
+    initial_matches = sum(1 for kw in header_keywords if any(kw in val for val in col_values))
+    
     header_idx = -1
-    for idx, row in df.iterrows():
-        row_values = [str(val).lower() for val in row.values]
-        matches = sum(1 for kw in header_keywords if any(kw in val for val in row_values))
-        if matches >= 2:
-            header_idx = idx
-            break
+    if initial_matches < 2:
+        for idx, row in df.iterrows():
+            row_values = [str(val).lower() for val in row.values]
+            matches = sum(1 for kw in header_keywords if any(kw in val for val in row_values))
+            if matches >= 2:
+                header_idx = idx
+                break
             
     # Re-slice if we found a true header row lower down
     if header_idx != -1:
@@ -179,3 +183,45 @@ def write_excel(prospects: list[dict], filepath: str):
     # Save the file
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     wb.save(filepath)
+
+def get_csv_preview(filepath: str) -> tuple[list[str], list[dict]]:
+    """
+    Read the CSV or Excel file, locate the header row, and return the list of
+    original column headers and a list of dictionaries (up to 5 rows) using the
+    original column headers as keys.
+    """
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found at: {filepath}")
+    
+    if filepath.lower().endswith(('.xlsx', '.xls')):
+        df = pd.read_excel(filepath)
+    else:
+        df = pd.read_csv(filepath)
+        
+    header_keywords = ["company", "name", "founder", "email", "linkedin", "title", "role"]
+    
+    col_values = [str(col).lower() for col in df.columns]
+    initial_matches = sum(1 for kw in header_keywords if any(kw in val for val in col_values))
+    
+    header_idx = -1
+    if initial_matches < 2:
+        for idx, row in df.iterrows():
+            row_values = [str(val).lower() for val in row.values]
+            matches = sum(1 for kw in header_keywords if any(kw in val for val in row_values))
+            if matches >= 2:
+                header_idx = idx
+                break
+            
+    if header_idx != -1:
+        new_header = [str(col).strip() for col in df.iloc[header_idx].values]
+        df.columns = new_header
+        df = df.iloc[header_idx + 1:]
+        
+    df = df.fillna("")
+    
+    df.columns = [str(h).strip() for h in df.columns]
+    headers = list(df.columns)
+    
+    preview_data = df.head(5).to_dict(orient="records")
+    return headers, preview_data
+

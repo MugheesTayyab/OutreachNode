@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Campaign Results — GreenFactor Custom Cold Emailer{% endblock %}
+{% block title %}Campaign Results — Outreach Node Custom Cold Emailer{% endblock %}
 
 {% block content %}
 <section class="results-header">
@@ -19,63 +19,49 @@
     </div>
 </section>
 
-<!-- Campaign Stats Bar -->
 <div class="stats-bar">
-    <div class="stat-card glass-card">
-        <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
-        <div class="stat-info">
-            <span class="stat-value" id="stat-total">{{ campaign.prospects | length }}</span>
-            <span class="stat-label">Total Prospects</span>
-        </div>
+    <div class="stat-card">
+        <span class="stat-value" id="stat-total">{{ campaign.prospects | length }}</span>
+        <span class="stat-label">Total Prospects</span>
     </div>
     
-    <div class="stat-card glass-card">
-        <div class="stat-icon green"><i class="fa-solid fa-square-check"></i></div>
-        <div class="stat-info">
-            <span class="stat-value" id="stat-approved">
-                {{ campaign.prospects | selectattr("status", "equalto", "approved") | list | length + campaign.prospects | selectattr("status", "equalto", "sent") | list | length }}
-            </span>
-            <span class="stat-label">Approved (Score &ge; 8)</span>
-        </div>
+    <div class="stat-card">
+        <span class="stat-value" id="stat-approved" style="color: var(--success);">
+            {{ campaign.prospects | selectattr("status", "equalto", "approved") | list | length + campaign.prospects | selectattr("status", "equalto", "sent") | list | length }}
+        </span>
+        <span class="stat-label">Approved (Score &ge; 8)</span>
     </div>
     
-    <div class="stat-card glass-card">
-        <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-        <div class="stat-info">
-            <span class="stat-value" id="stat-rejected">
-                {{ campaign.prospects | selectattr("status", "equalto", "rejected") | list | length }}
-            </span>
-            <span class="stat-label">Rejected (Score &lt; 8)</span>
-        </div>
+    <div class="stat-card">
+        <span class="stat-value" id="stat-rejected" style="color: var(--danger);">
+            {{ campaign.prospects | selectattr("status", "equalto", "rejected") | list | length }}
+        </span>
+        <span class="stat-label">Rejected (Score &lt; 8)</span>
     </div>
 
-    <div class="stat-card glass-card">
-        <div class="stat-icon teal"><i class="fa-solid fa-star"></i></div>
-        <div class="stat-info">
-            <span class="stat-value" id="stat-avg-score">
-                {% set scores = campaign.prospects | map(attribute='proofread_score') | list %}
-                {% if scores %}
-                    {{ (scores | sum / scores | length) | round(1) }}/10
-                {% else %}
-                    0/10
-                {% endif %}
-            </span>
-            <span class="stat-label">Avg Proofreader Score</span>
-        </div>
+    <div class="stat-card">
+        <span class="stat-value" id="stat-avg-score">
+            {% set scores = campaign.prospects | map(attribute='proofread_score') | list %}
+            {% if scores %}
+                {{ (scores | sum / scores | length) | round(1) }}/10
+            {% else %}
+                0/10
+            {% endif %}
+        </span>
+        <span class="stat-label">Avg Proofreader Score</span>
     </div>
 </div>
 
-<!-- Results Table -->
-<div class="glass-card results-table-card">
-    <div class="card-header table-header">
-        <h2><i class="fa-solid fa-address-book"></i> Prospects Outreach List</h2>
+<div class="card results-table-card">
+    <div class="table-header">
+        <h2 style="font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-address-book"></i> Prospects Outreach List</h2>
         <div class="table-search">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="table-filter" placeholder="Filter prospects by name, company, or status...">
         </div>
     </div>
     
-    <div class="table-wrapper">
+    <div class="table-wrapper" style="border: none; border-radius: 0;">
         <table class="results-table" id="results-table">
             <thead>
                 <tr>
@@ -103,15 +89,13 @@
                             </div>
                         </td>
                         <td>
-                            <div class="score-badge-container">
-                                {% if p.proofread_score >= 8 %}
-                                    <span class="score-badge high">{{ p.proofread_score }}/10</span>
-                                {% elif p.proofread_score > 0 %}
-                                    <span class="score-badge low">{{ p.proofread_score }}/10</span>
-                                {% else %}
-                                    <span class="score-badge none">—</span>
-                                 {% endif %}
-                            </div>
+                            {% if p.proofread_score >= 8 %}
+                                <span class="score-badge high">{{ p.proofread_score }}/10</span>
+                            {% elif p.proofread_score > 0 %}
+                                <span class="score-badge low">{{ p.proofread_score }}/10</span>
+                            {% else %}
+                                <span class="score-badge none">—</span>
+                             {% endif %}
                         </td>
                         <td>
                             <span class="status-badge {{ p.status }}">{{ p.status.capitalize() }}</span>
@@ -124,7 +108,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button class="btn btn-secondary btn-sm" onclick='openPreviewModal("{{ campaign.campaign_id }}", {{ p | tojson | forceescape }})'>
+                            <button class="btn btn-secondary btn-sm" onclick='openPreviewModal("{{ campaign.campaign_id }}", {{ p | tojson }})'>
                                 <i class="fa-solid fa-envelope-open-text"></i> Review & Send
                             </button>
                         </td>
@@ -135,15 +119,13 @@
     </div>
 </div>
 
-<!-- Custom Glassmorphism Preview Modal -->
 <div class="modal-backdrop hidden" id="preview-modal">
-    <div class="glass-card modal-container">
+    <div class="modal-container">
         <div class="modal-header">
             <h3><i class="fa-solid fa-envelope-open-text"></i> Email Customizer</h3>
             <button class="modal-close-btn" onclick="closePreviewModal()">&times;</button>
         </div>
         <div class="modal-body-grid">
-            <!-- Left Side: Email editor -->
             <div class="modal-editor-pane">
                 <div class="editor-field">
                     <label for="modal-email-to">To:</label>
@@ -161,7 +143,6 @@
                 </div>
             </div>
             
-            <!-- Right Side: Intelligence & Audio preview -->
             <div class="modal-intel-pane">
                 <div class="intel-section">
                     <h4><i class="fa-solid fa-shield-halved"></i> Editor Verification</h4>

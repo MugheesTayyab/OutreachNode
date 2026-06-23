@@ -113,7 +113,7 @@ class TestPipeline(unittest.TestCase):
         settings = {
             "sender_name": "Mughees Tayyab",
             "sender_role": "Founder",
-            "sender_company": "GreenFactor",
+            "sender_company": "Outreach Node",
             "tone": "friendly",
             "goal": "partnership",
             "custom_prompt": "Pitch our AI drone monitoring solutions for precision agriculture",
@@ -180,7 +180,7 @@ class TestPipeline(unittest.TestCase):
         settings = {
             "sender_name": "Mughees Tayyab",
             "sender_role": "Founder",
-            "sender_company": "GreenFactor",
+            "sender_company": "Outreach Node",
             "tone": "friendly",
             "goal": "partnership",
             "custom_prompt": "Offer cloud consulting services",
@@ -214,7 +214,7 @@ class TestPipeline(unittest.TestCase):
         settings = {
             "sender_name": "Mughees Tayyab",
             "sender_role": "Founder",
-            "sender_company": "GreenFactor",
+            "sender_company": "Outreach Node",
             "tone": "friendly",
             "goal": "partnership",
             "custom_prompt": "Pitch drone monitoring",

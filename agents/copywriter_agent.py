@@ -83,7 +83,7 @@ Company Context & Website Research:
 Campaign Settings:
 - Sender Name: {campaign_settings.get('sender_name', 'Mughees Tayyab')}
 - Sender Role: {campaign_settings.get('sender_role', 'Founder')}
-- Sender Company: {campaign_settings.get('sender_company', 'GreenFactor')}
+- Sender Company: {campaign_settings.get('sender_company', 'Outreach Node')}
 - Tone: {campaign_settings.get('tone', 'friendly')} (options: formal, friendly, bold)
 - Goal: {campaign_settings.get('goal', 'partnership')} (options: meeting, demo, partnership)
 - Outreach Prompt / Custom Objective: {original_prompt or campaign_settings.get('custom_prompt', 'Introduce our services and suggest a brief call.')}

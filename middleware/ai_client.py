@@ -44,8 +44,8 @@ class AIClient:
             headers = {
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://github.com/Saliha-Noor/GreenFactor",
-                "X-Title": "GreenFactor Outreach Emailer"
+                "HTTP-Referer": "https://github.com/Saliha-Noor/OutreachNode",
+                "X-Title": "Outreach Node Outreach Emailer"
             }
         else:
             provider_name = "OpenAI"

@@ -33,6 +33,8 @@ class OrchestratorAgent:
         sender_role = settings.get("sender_role", "")
         tone = settings.get("tone", "friendly")
         goal = settings.get("goal", "partnership")
+        prompt_doc_content = settings.get("prompt_doc_content", "")
+        prompt_doc_filename = settings.get("prompt_doc_filename", "")
 
         system_prompt = """
 You are an elite outreach strategist and research director. Your job is to analyze a user's outreach prompt and generate a structured research plan that will guide multiple AI agents (LinkedIn researcher, web researcher, copywriter, proofreader) to produce highly relevant, personalized cold emails.
@@ -58,10 +60,20 @@ You must output a valid JSON object. Do not include any markdown formatting or e
 - "tone_guidance": A 1-2 sentence note on how the tone should be adapted specifically for this outreach objective, beyond the basic tone setting (e.g., "Since we're pitching to tech leaders, use confident language but avoid overselling. Show genuine curiosity about their work.").
 """
 
+        doc_section = ""
+        if prompt_doc_content:
+            doc_section = f"""
+Reference Document ("{prompt_doc_filename}"):
+The user attached the following document for context. Use its content to deeply understand the offering, requirements, or background being promoted:
+--- BEGIN DOCUMENT ---
+{prompt_doc_content}
+--- END DOCUMENT ---
+"""
+
         user_prompt = f"""
 Outreach Prompt from User:
 "{outreach_prompt}"
-
+{doc_section}
 Sender Context:
 - Name: {sender_name}
 - Role: {sender_role}
@@ -69,7 +81,7 @@ Sender Context:
 - Requested Tone: {tone}
 - Campaign Goal: {goal}
 
-Analyze this outreach prompt and generate the research plan. The plan must enable the downstream agents to find exactly the right information to write compelling, prompt-aligned cold emails.
+Analyze this outreach prompt and the attached reference document (if any) and generate the research plan. The plan must enable the downstream agents to find exactly the right information to write compelling, prompt-aligned cold emails.
 """
         try:
             plan = self.ai_client.generate_json(system_prompt, user_prompt, temperature=0.3)

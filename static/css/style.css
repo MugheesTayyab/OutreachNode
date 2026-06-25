@@ -276,13 +276,20 @@ body {
     font-size: 13.5px;
     color: var(--text-primary);
     outline: none;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input[type="text"]:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+    border-color: var(--border-hover);
 }
 
 .form-group input[type="text"]:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
 }
 
 textarea { resize: vertical; min-height: 80px; }

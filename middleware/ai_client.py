@@ -36,7 +36,8 @@ class AIClient:
             url = f"{base_url}/messages"
             headers = {
                 "Authorization": f"Bearer {active_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "anthropic-version": "2023-06-01"
             }
         elif is_openrouter:
             provider_name = "OpenRouter"
@@ -55,20 +56,26 @@ class AIClient:
                 "Content-Type": "application/json"
             }
         
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": user_prompt})
-        
-        payload = {
-            "model": self.model_name,
-            "messages": messages,
-            "temperature": temperature
-        }
         if is_surf:
-            payload["max_tokens"] = 4096
-        if json_mode and not is_surf:
-            payload["response_format"] = {"type": "json_object"}
+            payload = {
+                "model": self.model_name,
+                "system": system_prompt or "",
+                "messages": [{"role": "user", "content": user_prompt}],
+                "max_tokens": 4096,
+                "temperature": temperature
+            }
+        else:
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": user_prompt})
+            payload = {
+                "model": self.model_name,
+                "messages": messages,
+                "temperature": temperature
+            }
+            if json_mode:
+                payload["response_format"] = {"type": "json_object"}
             
         for attempt in range(1, MAX_RETRIES + 1):
             try:
@@ -82,9 +89,12 @@ class AIClient:
                     content = res_json["choices"][0]["message"]["content"]
                 elif "content" in res_json and res_json["content"]:
                     if isinstance(res_json["content"], list):
-                        content = res_json["content"][0]["text"]
+                        parts = [c["text"] for c in res_json["content"] if c.get("type") == "text"]
+                        content = "".join(parts)
                     else:
                         content = res_json["content"]
+                elif "error" in res_json:
+                    raise ValueError(f"{provider_name} API error: {res_json['error']}")
                 else:
                     raise ValueError(f"{provider_name} unrecognized response structure: {response.text}")
                     

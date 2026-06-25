@@ -19,7 +19,7 @@ SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 
 # Config Parameters
-MODEL_NAME = os.getenv("MODEL_NAME", "gateway-claude-opus-4-8")
+MODEL_NAME = os.getenv("MODEL_NAME", "claude-opus-4-8")
 MAX_RETRIES = 3
 
 # Paths

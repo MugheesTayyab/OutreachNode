@@ -573,11 +573,26 @@ tbody tr:hover { background: rgba(0,0,0,0.01); }
 
 .empty-state {
     text-align: center;
-    padding: 48px 20px;
+    padding: 56px 20px;
     color: var(--text-tertiary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.3; }
+.empty-icon {
+    font-size: 44px;
+    margin-bottom: 16px;
+    color: var(--accent);
+    opacity: 0.25;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.empty-state:hover .empty-icon {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 0.4;
+}
 
 /* Prompt doc zone */
 .prompt-doc-zone {

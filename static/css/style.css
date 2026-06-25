@@ -1059,10 +1059,17 @@ tbody tr:hover { background: rgba(0,0,0,0.01); }
     font-size: 13px;
     color: var(--text-primary);
     outline: none;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.table-search input:focus { border-color: var(--accent); }
+.table-search input:hover {
+    border-color: var(--border-hover);
+}
+
+.table-search input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+}
 
 .results-table { font-size: 13px; }
 

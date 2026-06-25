@@ -526,8 +526,17 @@ tbody tr:hover { background: rgba(0,0,0,0.01); }
 }
 
 .history-item {
-    padding: 16px 0;
+    padding: 14px 10px;
+    margin: 4px 0;
     border-bottom: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.history-item:hover {
+    background: rgba(5, 150, 105, 0.03);
+    transform: scale(1.01) translateX(2px);
+    border-color: transparent;
 }
 
 .history-item:last-child { border-bottom: none; }

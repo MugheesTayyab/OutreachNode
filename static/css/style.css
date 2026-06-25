@@ -699,12 +699,14 @@ tbody tr:hover { background: rgba(0,0,0,0.01); }
     border-radius: var(--radius);
     border: 1px solid transparent;
     background: rgba(0,0,0,0.015);
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .step-card.active {
     border-color: var(--accent);
     background: var(--accent-subtle);
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.08);
 }
 
 .step-card.completed {

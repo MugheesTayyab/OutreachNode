@@ -10,7 +10,45 @@ document.addEventListener('DOMContentLoaded', () => {
     initStatCountUp();
     initKeyboardNav();
     initInteractiveStats();
+    initThemeToggle();
 });
+
+/* ==========================================================================
+   DARK MODE SYSTEM (#20)
+   Initializes and handles dark mode toggling with localStorage persistence
+   ========================================================================== */
+
+function initThemeToggle() {
+    const btn = document.getElementById('theme-toggle-btn');
+    if (!btn) return;
+
+    const icon = btn.querySelector('i');
+
+    function setTheme(theme) {
+        if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            icon.className = 'fa-solid fa-sun';
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            icon.className = 'fa-solid fa-moon';
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    const savedTheme = localStorage.getItem('theme');
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+        setTheme('dark');
+    } else {
+        setTheme('light');
+    }
+
+    btn.addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        setTheme(isDark ? 'light' : 'dark');
+    });
+}
 
 /* ==========================================================================
    KEYBOARD NAVIGATION ON RESULTS TABLE ROWS (#18)

@@ -1564,6 +1564,32 @@ tbody tr:hover { background: var(--bg-tertiary); }
 
 .toast-close:hover { color: var(--text-primary); }
 
+/* Toast progress bar */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    border-radius: 0 0 var(--radius) var(--radius);
+    transform-origin: left;
+    animation: toastProgress 5s linear forwards;
+}
+.toast { position: relative; overflow: hidden; }
+.toast.success .toast-progress { background: var(--success); }
+.toast.error .toast-progress { background: var(--danger); }
+.toast.info .toast-progress { background: var(--accent); }
+
+@keyframes toastProgress {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+@keyframes slideOutRight {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(20px); }
+}
+
 /* ==========================================================================
    PULSE BUTTON
    ========================================================================== */

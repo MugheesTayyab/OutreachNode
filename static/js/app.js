@@ -95,17 +95,20 @@ function showToast(message, type = 'info') {
     toast.innerHTML = `
         <i class="fa-solid ${iconClass} toast-icon"></i>
         <span>${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+        <button class="toast-close" onclick="dismissToast(this.parentElement)">&times;</button>
+        <div class="toast-progress"></div>
     `;
 
     container.appendChild(toast);
 
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 5000);
+    // Auto remove after 5 seconds with slide-out animation
+    setTimeout(() => dismissToast(toast), 5000);
+}
+
+function dismissToast(toast) {
+    if (!toast || !toast.parentElement) return;
+    toast.style.animation = 'slideOutRight 0.3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
 }
 
 /* ==========================================================================

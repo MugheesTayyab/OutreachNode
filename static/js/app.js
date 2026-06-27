@@ -7,7 +7,71 @@ document.addEventListener('DOMContentLoaded', () => {
     initCampaignForm();
     initResultsFilter();
     initPromptDocUpload();
+    initStatCountUp();
 });
+
+/* ==========================================================================
+   STAT COUNT-UP ANIMATION (#02)
+   Animates all .stat-value elements from 0 to their target value
+   ========================================================================== */
+
+function initStatCountUp() {
+    const statValues = document.querySelectorAll('.stat-value');
+    if (!statValues.length) return;
+
+    const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
+
+    statValues.forEach(el => {
+        const rawText = el.innerText.trim();
+        // Parse: "42", "9.2/10", "$0.0023", "8.5/10", "—"
+        let suffix = '';
+        let prefix = '';
+        let target = 0;
+
+        if (rawText === '—' || rawText === '') return;
+
+        if (rawText.includes('/10')) {
+            // Score like "9.2/10"
+            const num = parseFloat(rawText.replace('/10', ''));
+            if (isNaN(num)) return;
+            target = num;
+            suffix = '/10';
+        } else if (rawText.startsWith('$')) {
+            // Cost like "$0.0023"
+            const num = parseFloat(rawText.replace('$', ''));
+            if (isNaN(num)) return;
+            target = num;
+            prefix = '$';
+        } else {
+            const num = parseFloat(rawText.replace(/,/g, ''));
+            if (isNaN(num)) return;
+            target = num;
+        }
+
+        const isDecimal = target % 1 !== 0 || rawText.includes('.');
+        const decimals = isDecimal ? (rawText.split('.')[1] ? rawText.split('.')[1].replace('/10', '').replace('$', '').length : 1) : 0;
+
+        el.innerText = prefix + '0' + suffix;
+
+        const duration = 800;
+        const startTime = performance.now();
+
+        function tick(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easedProgress = easeOutQuart(progress);
+            const current = easedProgress * target;
+            const formatted = decimals > 0
+                ? current.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+                : Math.round(current).toLocaleString('en-US');
+            el.innerText = prefix + formatted + suffix;
+
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+
+        requestAnimationFrame(tick);
+    });
+}
 
 // Global state for preview modal
 let currentProspectData = null;

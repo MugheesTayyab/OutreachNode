@@ -83,6 +83,35 @@ body {
     color: #fff;
 }
 
+/* ==========================================================================
+   PAGE ENTER ANIMATIONS (#05)
+   Staggered cascade for main content on page load
+   ========================================================================== */
+
+@keyframes pageEnterUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.app-main > * {
+    animation: pageEnterUp 0.45s ease both;
+}
+
+.app-main > *:nth-child(1) { animation-delay: 0.04s; }
+.app-main > *:nth-child(2) { animation-delay: 0.10s; }
+.app-main > *:nth-child(3) { animation-delay: 0.16s; }
+.app-main > *:nth-child(4) { animation-delay: 0.22s; }
+.app-main > *:nth-child(5) { animation-delay: 0.28s; }
+.app-main > *:nth-child(6) { animation-delay: 0.34s; }
+.app-main > *:nth-child(7) { animation-delay: 0.40s; }
+.app-main > *:nth-child(8) { animation-delay: 0.46s; }
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }

@@ -84,7 +84,7 @@
         </div>
     </div>
 
-    <div class="table-wrapper" style="border: none; border-radius: 0;">
+    <div class="scroll-fade-wrapper" id="results-scroll-wrapper" style="border: none; border-radius: 0;">
         <table class="results-table" id="results-table">
             <thead>
                 <tr>
@@ -152,7 +152,7 @@
                         </td>
                         <td>
                             <button class="btn btn-secondary btn-sm" onclick='openPreviewModal("{{ campaign.campaign_id }}", {{ p | tojson }})' title="Review, customize, or send email draft">
-                                <i class="fa-solid fa-envelope-open-text"></i> Review & Send
+                                <i class="fa-solid fa-envelope-open-text"></i> Review &amp; Send
                             </button>
                         </td>
                     </tr>
@@ -161,6 +161,22 @@
         </table>
     </div>
 </div>
+<script>
+(function initScrollFade() {
+    const wrapper = document.getElementById('results-scroll-wrapper');
+    if (!wrapper) return;
+    function checkOverflow() {
+        const hasOverflow = wrapper.scrollWidth > wrapper.clientWidth;
+        wrapper.classList.toggle('has-overflow', hasOverflow);
+        const atEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 4;
+        wrapper.classList.toggle('scrolled-end', atEnd);
+    }
+    checkOverflow();
+    wrapper.addEventListener('scroll', checkOverflow);
+    window.addEventListener('resize', checkOverflow);
+})();
+</script>
+
 
 <div class="modal-backdrop hidden" id="preview-modal">
     <div class="modal-container">

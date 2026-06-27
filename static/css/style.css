@@ -1227,6 +1227,30 @@ tbody tr:hover { background: var(--bg-tertiary); }
 
 .results-table-card { padding: 0; overflow: hidden; }
 
+/* Scroll-fade indicator for horizontal table overflow on mobile */
+.scroll-fade-wrapper {
+    position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.scroll-fade-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 48px;
+    height: 100%;
+    background: linear-gradient(to right, transparent, var(--bg));
+    pointer-events: none;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.scroll-fade-wrapper.has-overflow::after { opacity: 1; }
+.scroll-fade-wrapper.scrolled-end::after { opacity: 0; }
+
 .table-header {
     display: flex;
     justify-content: space-between;

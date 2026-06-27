@@ -1421,6 +1421,21 @@ tbody tr:hover { background: var(--bg-tertiary); }
     transform: translateY(-1px);
 }
 
+.stat-card.interactive {
+    cursor: pointer;
+    user-select: none;
+}
+
+.stat-card.interactive:hover {
+    border-color: var(--accent);
+}
+
+.stat-card.interactive.active {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    box-shadow: 0 0 0 2px var(--accent-light);
+}
+
 .stat-value {
     font-size: 32px;
     font-weight: 800;

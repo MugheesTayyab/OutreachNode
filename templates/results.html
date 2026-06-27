@@ -23,19 +23,19 @@
 </section>
 
 <div class="stats-bar">
-    <div class="stat-card">
+    <div class="stat-card interactive" id="card-total">
         <span class="stat-value" id="stat-total">{{ campaign.prospects | length }}</span>
         <span class="stat-label">Total Prospects</span>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card interactive" id="card-approved" style="border-left-color: var(--success); border-left-width: 4px;">
         <span class="stat-value" id="stat-approved" style="color: var(--success);">
             {{ campaign.prospects | selectattr("status", "equalto", "approved") | list | length + campaign.prospects | selectattr("status", "equalto", "sent") | list | length }}
         </span>
         <span class="stat-label">Approved (Score &ge; 8)</span>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card interactive" id="card-rejected" style="border-left-color: var(--danger); border-left-width: 4px;">
         <span class="stat-value" id="stat-rejected" style="color: var(--danger);">
             {{ campaign.prospects | selectattr("status", "equalto", "rejected") | list | length }}
         </span>

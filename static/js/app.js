@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initPromptDocUpload();
     initStatCountUp();
     initKeyboardNav();
+    initInteractiveStats();
 });
 
 /* ==========================================================================
@@ -61,6 +62,57 @@ function initKeyboardNav() {
             if (btn) btn.click();
         }
     });
+}
+
+/* ==========================================================================
+   INTERACTIVE STAT CARDS (#19)
+   Filters the results table based on the clicked stat card (approved, rejected, total)
+   ========================================================================== */
+
+function initInteractiveStats() {
+    const cardTotal = document.getElementById('card-total');
+    const cardApproved = document.getElementById('card-approved');
+    const cardRejected = document.getElementById('card-rejected');
+    if (!cardTotal || !cardApproved || !cardRejected) return;
+
+    const cards = [cardTotal, cardApproved, cardRejected];
+    const rows = document.querySelectorAll('.prospect-row');
+
+    function filterTable(filterType) {
+        cards.forEach(c => c.classList.remove('active'));
+
+        rows.forEach(row => {
+            const status = row.getAttribute('data-status');
+            if (filterType === 'all') {
+                row.style.display = '';
+                cardTotal.classList.add('active');
+            } else if (filterType === 'approved') {
+                if (status === 'approved' || status === 'sent') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+                cardApproved.classList.add('active');
+            } else if (filterType === 'rejected') {
+                if (status === 'rejected' || status === 'failed') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+                cardRejected.classList.add('active');
+            }
+        });
+
+        // Trigger filterChanged event so keyboard nav updates row tabindex
+        document.dispatchEvent(new CustomEvent('filterChanged'));
+    }
+
+    cardTotal.addEventListener('click', () => filterTable('all'));
+    cardApproved.addEventListener('click', () => filterTable('approved'));
+    cardRejected.addEventListener('click', () => filterTable('rejected'));
+
+    // Set total as active by default
+    cardTotal.classList.add('active');
 }
 
 /* ==========================================================================

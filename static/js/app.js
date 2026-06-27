@@ -8,7 +8,60 @@ document.addEventListener('DOMContentLoaded', () => {
     initResultsFilter();
     initPromptDocUpload();
     initStatCountUp();
+    initKeyboardNav();
 });
+
+/* ==========================================================================
+   KEYBOARD NAVIGATION ON RESULTS TABLE ROWS (#18)
+   Allows users to navigate results table rows with ArrowUp/ArrowDown and open with Enter
+   ========================================================================== */
+
+function initKeyboardNav() {
+    const table = document.getElementById('results-table');
+    if (!table) return;
+
+    const getRows = () => Array.from(table.querySelectorAll('tbody tr.prospect-row'));
+    const rows = getRows();
+    if (!rows.length) return;
+
+    rows.forEach(row => {
+        row.setAttribute('tabindex', '0');
+    });
+
+    // Re-evaluate tabindex when filter changes
+    document.addEventListener('filterChanged', () => {
+        getRows().forEach(row => {
+            if (row.style.display === 'none') {
+                row.removeAttribute('tabindex');
+            } else {
+                row.setAttribute('tabindex', '0');
+            }
+        });
+    });
+
+    table.addEventListener('keydown', (e) => {
+        const activeEl = document.activeElement;
+        if (!activeEl || !activeEl.classList.contains('prospect-row')) return;
+
+        const visibleRows = getRows().filter(row => row.style.display !== 'none');
+        const currentIndex = visibleRows.indexOf(activeEl);
+        if (currentIndex === -1) return;
+
+        if (e.key === 'ArrowDown' || e.key === 'j') {
+            e.preventDefault();
+            const nextRow = visibleRows[currentIndex + 1];
+            if (nextRow) nextRow.focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'k') {
+            e.preventDefault();
+            const prevRow = visibleRows[currentIndex - 1];
+            if (prevRow) prevRow.focus();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const btn = activeEl.querySelector('.btn');
+            if (btn) btn.click();
+        }
+    });
+}
 
 /* ==========================================================================
    STAT COUNT-UP ANIMATION (#02)
@@ -714,6 +767,9 @@ function initResultsFilter() {
                 row.style.display = 'none';
             }
         });
+
+        // Notify that the filter has changed (#18)
+        document.dispatchEvent(new CustomEvent('filterChanged'));
     });
 }
 

@@ -47,8 +47,51 @@
                     <span class="user-role">UAV Lab Internship</span>
                 </div>
             </div>
+            <!-- Mobile hamburger -->
+            <button class="hamburger-btn" id="hamburger-btn" aria-label="Open navigation" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </header>
+
+    <!-- Mobile nav drawer -->
+    <div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="closeMobileNav()"></div>
+    <nav class="mobile-nav-drawer" id="mobile-nav-drawer" aria-label="Mobile navigation">
+        <div class="mobile-nav-header">
+            <span class="logo-text">Outreach<span>Node</span></span>
+            <button class="mobile-nav-close" onclick="closeMobileNav()" aria-label="Close navigation">&times;</button>
+        </div>
+        <a href="/start-campaign" class="mobile-nav-link {% if request.path == '/start-campaign' %}active{% endif %}">
+            <i class="fa-solid fa-rocket"></i>Start Campaign
+        </a>
+        <a href="/campaign-history" class="mobile-nav-link {% if request.path == '/campaign-history' %}active{% endif %}">
+            <i class="fa-solid fa-clock-rotate-left"></i>History
+        </a>
+        <a href="/analytics" class="mobile-nav-link {% if request.path == '/analytics' %}active{% endif %}">
+            <i class="fa-solid fa-chart-line"></i>Analytics
+        </a>
+        <a href="/notifications" class="mobile-nav-link {% if request.path == '/notifications' %}active{% endif %}">
+            <i class="fa-solid fa-bell"></i>Notifications
+        </a>
+        <a href="/settings" class="mobile-nav-link {% if request.path == '/settings' %}active{% endif %}">
+            <i class="fa-solid fa-gear"></i>Settings
+        </a>
+    </nav>
+    <script>
+    function openMobileNav() {
+        document.getElementById('mobile-nav-drawer').classList.add('open');
+        document.getElementById('mobile-nav-overlay').classList.add('open');
+        document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMobileNav() {
+        document.getElementById('mobile-nav-drawer').classList.remove('open');
+        document.getElementById('mobile-nav-overlay').classList.remove('open');
+        document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+    document.getElementById('hamburger-btn').addEventListener('click', openMobileNav);
+    </script>
     {% endblock %}
 
     <main class="app-main">

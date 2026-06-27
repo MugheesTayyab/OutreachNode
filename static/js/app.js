@@ -196,7 +196,9 @@ function initCampaignForm() {
             custom_prompt: formData.get('custom_prompt'),
             auto_generate_audio: form.querySelector('#auto_generate_audio').checked,
             prompt_doc_content: document.getElementById('prompt-doc-content')?.value || '',
-            prompt_doc_filename: document.getElementById('prompt-doc-filename-hidden')?.value || ''
+            prompt_doc_filename: document.getElementById('prompt-doc-filename-hidden')?.value || '',
+            tags: document.getElementById('tags')?.value || '',
+            ab_test: document.getElementById('ab_test')?.checked || false
         };
 
         showToast('Initializing multi-agent pipeline...', 'info');
@@ -390,6 +392,11 @@ function initPipelinePolling(campaignId) {
                     activeProspect = p;
                 }
 
+                let abBadge = '';
+                if (p.ab_variant) {
+                    abBadge = `<span class="status-badge" style="background: var(--accent-light); color: var(--accent); font-size: 10px; padding: 2px 6px;">Variant ${p.ab_variant}</span>`;
+                }
+
                 row.innerHTML = `
                     <div class="prospect-run-info">
                         <h4>${p.name}</h4>
@@ -398,6 +405,7 @@ function initPipelinePolling(campaignId) {
                     <div class="prospect-run-status">
                         ${p.status === 'processing' ? '<span class="pulse-circle"></span>' : ''}
                         <span>${stageText}</span>
+                        ${abBadge}
                         <span class="status-badge ${badgeClass}">${p.status.toUpperCase()}</span>
                     </div>
                 `;

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Outreach Node — Premium multi-agent cold email campaign manager">
+    <meta name="theme-color" content="#6366F1">
+    <title>Outreach Node</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%236366f1'/%3E%3Cpath d='M50 20C38.954 20 30 28.954 30 40v20c0 11.046 8.954 20 20 20s20-8.954 20-20V40c0-11.046-8.954-20-20-20z' fill='%23fff' opacity='.9'/%3E%3Cpath d='M45 40l-5 15h6l-2 10 10-15h-6l5-10z' fill='%236366f1'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #FFFFFF;
+            --bg-secondary: #F8FAFC;
+            --bg-tertiary: #F1F5F9;
+            --text-primary: #0F172A;
+            --text-secondary: #334155;
+            --text-muted: #64748B;
+            --text-light: #94A3B8;
+            --accent: #6366F1;
+            --accent-hover: #4F46E5;
+            --accent-light: #EEF2FF;
+            --border: #E2E8F0;
+            --border-hover: #CBD5E1;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --radius: 8px;
+            --radius-lg: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* Splash Screen */
+        .splash-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .splash-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .splash-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .splash-logo-icon {
+            width: 80px; height: 80px;
+            background: var(--accent);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .splash-logo-icon i { font-size: 36px; color: white; }
+
+        .splash-title {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .splash-title span { color: var(--accent); }
+
+        .splash-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .splash-loader {
+            margin-top: 40px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .splash-loader span {
+            width: 8px; height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: loaderBounce 1.4s ease-in-out infinite;
+        }
+
+        .splash-loader span:nth-child(2) { animation-delay: 0.2s; }
+        .splash-loader span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes loaderBounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Dashboard */
+        .dashboard { display: none; min-height: 100vh; flex-direction: column; }
+        .dashboard.active { display: flex; }
+
+        .header {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 32px; }
+
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: var(--accent);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon i { font-size: 16px; color: white; }
+
+        .logo-text { font-size: 18px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+        .logo-text span { color: var(--accent); }
+
+        .nav-links { display: flex; gap: 2px; }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            transition: all 0.15s ease;
+        }
+
+        .nav-link:hover { color: var(--text-primary); background: var(--bg-tertiary); }
+        .nav-link.active { color: var(--accent); background: var(--accent-light); font-weight: 600; }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 14px 6px 6px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: border-color 0.15s ease;
+        }
+
+        .profile:hover { border-color: var(--border-hover); }
+
+        .profile-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .profile-info { display: flex; flex-direction: column; }
+        .profile-name { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+        .profile-role { font-size: 11px; color: var(--text-light); }
+
+        .main-content {
+            flex: 1;
+            padding: 48px 32px;
+            max-width: 1280px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .hero { text-align: center; padding: 56px 0 48px; }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            margin-bottom: 14px;
+            color: var(--text-primary);
+        }
+
+        .hero-title span { color: var(--accent); }
+
+        .hero-subtitle {
+            font-size: 17px;
+            color: var(--text-muted);
+            max-width: 540px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* Options Grid — Flat */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .option-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 36px 28px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .option-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .option-card:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .option-icon {
+            width: 56px; height: 56px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .option-icon.campaign { background: var(--accent-light); color: var(--accent); }
+        .option-icon.history { background: #ECFDF5; color: #10B981; }
+        .option-icon.settings { background: #FEF3C7; color: #D97706; }
+
+        .option-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+
+        .option-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; }
+
+        .option-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent);
+            transition: gap 0.15s ease;
+        }
+
+        .option-card:hover .option-btn { gap: 10px; }
+
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 24px 32px;
+            text-align: center;
+        }
+
+        .footer p { font-size: 13px; color: var(--text-light); }
+
+        @media (max-width: 1024px) { .options-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .hero-title { font-size: 32px; }
+            .nav-links { display: none; }
+            .profile-info { display: none; }
+            .header { padding: 0 20px; }
+            .main-content { padding: 24px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-logo">
+            <div class="splash-logo-icon">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+            <h1 class="splash-title">Outreach<span>Node</span></h1>
+            <p class="splash-subtitle">Campaign Manager</p>
+        </div>
+        <div class="splash-loader">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <header class="header">
+            <div class="header-left">
+                <a href="/" class="logo">
+                    <div class="logo-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                    <span class="logo-text">Outreach<span>Node</span></span>
+                </a>
+                <nav class="nav-links">
+                    <a href="/start-campaign" class="nav-link"><i class="fa-solid fa-rocket"></i> Start Campaign</a>
+                    <a href="/campaign-history" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+                    <a href="/analytics" class="nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+                    <a href="/notifications" class="nav-link"><i class="fa-solid fa-bell"></i> Notifications</a>
+                    <a href="/settings" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
+                </nav>
+            </div>
+            <div class="profile">
+                <div class="profile-avatar">MT</div>
+                <div class="profile-info">
+                    <span class="profile-name">Mughees Tayyab</span>
+                    <span class="profile-role">UAV Lab Intern</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="hero">
+                <h1 class="hero-title">Welcome to <span>Outreach Node</span></h1>
+                <p class="hero-subtitle">Your premium multi-agent cold email campaign manager with self-correcting AI quality assurance and real-time pipeline orchestration.</p>
+            </section>
+
+            <section>
+                <div class="options-grid">
+                    <a href="/start-campaign" class="option-card">
+                        <div class="option-icon campaign"><i class="fa-solid fa-rocket"></i></div>
+                        <h3 class="option-title">Start Campaign</h3>
+                        <p class="option-desc">Create a new multi-agent campaign with AI-powered outreach sequences and quality assurance.</p>
+                        <span class="option-btn">Get Started <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
+
+                    <a href="/campaign-history" class="option-card">
+                        <div class="option-icon history"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                        <h3 class="option-title">Campaign History</h3>
+                        <p class="option-desc">Browse and manage all your campaign history with detailed analytics and performance metrics.</p>
+                        <span class="option-btn">View History <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
+
+                    <a href="/settings" class="option-card">
+                        <div class="option-icon settings"><i class="fa-solid fa-gear"></i></div>
+                        <h3 class="option-title">Settings</h3>
+                        <p class="option-desc">Configure your account preferences, API keys, SMTP settings, and campaign parameters.</p>
+                        <span class="option-btn">Configure <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2026 Outreach Node. Developed for UAV Lab Internship by Mughees Tayyab.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const splash = document.getElementById('splashScreen');
+            const dash = document.getElementById('dashboard');
+            setTimeout(() => {
+                splash.classList.add('hidden');
+                dash.classList.add('active');
+            }, 2500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings — Outreach Node{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <h1 class="gradient-title">Settings</h1>
+    <p class="hero-tagline">Configure your account, API keys, SMTP, and campaign defaults.</p>
+</section>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-key"></i> API Configuration</h2>
+        </div>
+        <form class="settings-form" data-section="api">
+            <div class="form-group">
+                <label for="api_key">LLM API Key</label>
+                <input type="password" id="api_key" name="api_key" placeholder="Enter your API key" value="">
+                <p style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Used for Claude Opus via unlimited.surf</p>
+            </div>
+            <div class="form-group">
+                <label for="api_model">Model Name</label>
+                <input type="text" id="api_model" name="api_model" value="claude-opus-4-8" placeholder="Model identifier">
+            </div>
+            <div class="form-group">
+                <label for="api_base_url">API Base URL</label>
+                <input type="text" id="api_base_url" name="api_base_url" value="https://unlimited.surf/v1" placeholder="API endpoint URL">
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 8px;">
+                <i class="fa-solid fa-save"></i> Save API Settings
+            </button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-envelope"></i> SMTP Configuration</h2>
+        </div>
+        <form class="settings-form" data-section="smtp">
+            <div class="form-group">
+                <label for="smtp_host">SMTP Host</label>
+                <input type="text" id="smtp_host" name="smtp_host" value="smtp.gmail.com">
+            </div>
+            <div class="form-group">
+                <label for="smtp_port">SMTP Port</label>
+                <input type="number" id="smtp_port" name="smtp_port" value="587">
+            </div>
+            <div class="form-group">
+                <label for="smtp_user">SMTP Username</label>
+                <input type="text" id="smtp_user" name="smtp_user" placeholder="your-email@gmail.com">
+            </div>
+            <div class="form-group">
+                <label for="smtp_pass">SMTP Password</label>
+                <input type="password" id="smtp_pass" name="smtp_pass" placeholder="App password or SMTP key">
+            </div>
+            <div class="form-group">
+                <label for="smtp_from_name">From Name</label>
+                <input type="text" id="smtp_from_name" name="smtp_from_name" value="Mughees Tayyab">
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 8px;">
+                <i class="fa-solid fa-save"></i> Save SMTP Settings
+            </button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-sliders"></i> Campaign Defaults</h2>
+        </div>
+        <form class="settings-form" data-section="defaults">
+            <div class="form-group">
+                <label for="default_sender_name">Default Sender Name</label>
+                <input type="text" id="default_sender_name" name="default_sender_name" value="Mughees Tayyab">
+            </div>
+            <div class="form-group">
+                <label for="default_sender_role">Default Sender Role</label>
+                <input type="text" id="default_sender_role" name="default_sender_role" value="Founder">
+            </div>
+            <div class="form-group">
+                <label for="default_company">Default Company</label>
+                <input type="text" id="default_company" name="default_company" value="Outreach Node">
+            </div>
+            <div class="form-group">
+                <label for="default_tone">Default Email Tone</label>
+                <select id="default_tone" name="default_tone">
+                    <option value="friendly">Friendly & Collaborative</option>
+                    <option value="formal" selected>Professional & Formal</option>
+                    <option value="bold">Bold & Direct</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="default_goal">Default Campaign Goal</label>
+                <select id="default_goal" name="default_goal">
+                    <option value="partnership" selected>Strategic Partnership</option>
+                    <option value="meeting">Book a Call / Meeting</option>
+                    <option value="demo">Schedule a Demo</option>
+                    <option value="sales">Direct Sales Pitch</option>
+                    <option value="networking">Professional Networking</option>
+                </select>
+            </div>
+            <div class="form-group toggle-group" style="margin-top: 4px;">
+                <label class="toggle-label">
+                    <span>Auto-Generate Audio by Default</span>
+                    <input type="checkbox" id="default_auto_audio" name="default_auto_audio">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 8px;">
+                <i class="fa-solid fa-save"></i> Save Defaults
+            </button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-link"></i> Integrations</h2>
+        </div>
+        <form class="settings-form" data-section="integrations">
+            <div class="form-group">
+                <label for="webhook_url">Webhook URL</label>
+                <input type="url" id="webhook_url" name="webhook_url" placeholder="https://hooks.zapier.com/..." value="">
+                <p style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Receives POST events: campaign.started, campaign.completed, prospect.completed</p>
+            </div>
+            <div class="form-group">
+                <label for="calendly_url">Calendly / Booking URL</label>
+                <input type="url" id="calendly_url" name="calendly_url" placeholder="https://calendly.com/yourname" value="">
+                <p style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Injected into email CTAs for easy meeting booking</p>
+            </div>
+            <div class="form-group">
+                <label for="unsubscribe_email">Unsubscribe Email</label>
+                <input type="email" id="unsubscribe_email" name="unsubscribe_email" placeholder="unsubscribe@yourdomain.com" value="">
+                <p style="font-size: 12px; color: var(--text-light); margin-top: 4px;">List-Unsubscribe header for compliance</p>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 8px;">
+                <i class="fa-solid fa-save"></i> Save Integrations
+            </button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-palette"></i> Appearance</h2>
+        </div>
+        <form class="settings-form" data-section="appearance">
+            <div class="form-group">
+                <label for="theme_mode">Theme Mode</label>
+                <select id="theme_mode" name="theme_mode">
+                    <option value="light" selected>Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="auto">System Default</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="accent_color">Accent Color</label>
+                <select id="accent_color" name="accent_color">
+                    <option value="indigo" selected>Indigo (Default)</option>
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                    <option value="purple">Purple</option>
+                    <option value="pink">Pink</option>
+                </select>
+            </div>
+            <div class="form-group toggle-group" style="margin-top: 4px;">
+                <label class="toggle-label">
+                    <span>Enable Notifications</span>
+                    <input type="checkbox" id="enable_notifications" name="enable_notifications" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="form-group toggle-group">
+                <label class="toggle-label">
+                    <span>Sound Alerts on Campaign Complete</span>
+                    <input type="checkbox" id="sound_alerts" name="sound_alerts">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 8px;">
+                <i class="fa-solid fa-save"></i> Save Preferences
+            </button>
+        </form>
+    </div>
+
+    <div class="card" style="grid-column: span 2;">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-database"></i> Data Management</h2>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button class="btn btn-secondary" id="export-all-btn">
+                <i class="fa-solid fa-download"></i> Export All Campaigns
+            </button>
+            <button class="btn btn-secondary" id="clear-history-btn" onclick="if(!confirm('Clear all campaign history? This cannot be undone.')) return; fetch('/api/clear-all', {method:'DELETE'}).then(r=>r.json()).then(()=>{showToast('All campaigns cleared!','success'); setTimeout(()=>location.reload(),500)})">
+                <i class="fa-solid fa-trash"></i> Clear Campaign History
+            </button>
+            <a href="/api/csv-template" class="btn btn-secondary" download>
+                <i class="fa-solid fa-file-csv"></i> Download CSV Template
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.settings-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {};
+        new FormData(form).forEach((val, key) => { data[key] = val; });
+        form.querySelectorAll('input[type="checkbox"]').forEach(cb => { data[cb.name] = cb.checked; });
+        try {
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            showToast('Settings saved successfully!', 'success');
+        } catch { showToast('Failed to save settings.', 'error'); }
+    });
+});
+
+document.getElementById('export-all-btn')?.addEventListener('click', async () => {
+    try {
+        const statsRes = await fetch('/api/campaigns-stats');
+        const stats = await statsRes.json();
+        const campaignsRes = await fetch('/api/settings');
+        const settings = await campaignsRes.json();
+        const exportData = { stats, settings, exported_at: new Date().toISOString() };
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `outreach-node-export-${Date.now()}.json`;
+        a.click();
+        showToast('All data exported!', 'success');
+    } catch { showToast('Export failed.', 'error'); }
+});
+
+(async function loadSettings() {
+    try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        document.querySelectorAll('.settings-form input, .settings-form select').forEach(el => {
+            if (data[el.name] !== undefined) {
+                if (el.type === 'checkbox') el.checked = data[el.name];
+                else el.value = data[el.name];
+            }
+        });
+    } catch {}
+})();
+</script>
+{% endblock %}

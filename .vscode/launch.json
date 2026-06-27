@@ -1,0 +1,40 @@
+{
+    "version": "2.0.0",
+    "configurations": [
+        {
+            "name": "Outreach Node - Python/Flask",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/app.py",
+            "python": "python",
+            "cwd": "${workspaceFolder}",
+            "args": [],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "debugOptions": [
+                "RedirectOutput"
+            ],
+            "justMyCode": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Run Local Development",
+            "type": "bash",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "command": "python app.py",
+            "env": {
+                "FLASK_ENV": "development"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Run Server",
+            "configurations": [
+                "Outreach Node - Python/Flask"
+            ]
+        }
+    ]
+}

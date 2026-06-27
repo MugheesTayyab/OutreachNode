@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard — Outreach Node Custom Cold Emailer{% endblock %}
+{% block title %}Dashboard — Outreach Node{% endblock %}
 
 {% block content %}
 <section class="hero-section">
@@ -9,11 +9,11 @@
 </section>
 
 <div class="dashboard-grid">
-    <div class="card main-config-card">
+    <div class="card">
         <div class="card-header">
             <h2><i class="fa-solid fa-sliders"></i> Campaign Setup</h2>
         </div>
-               <form id="campaign-form">
+        <form id="campaign-form">
             <div class="form-grid">
                 <div class="form-group">
                     <label for="sender_name">Sender Name</label>
@@ -49,7 +49,7 @@
                     </select>
                 </div>
 
-                <div class="form-group toggle-group" style="grid-column: span 2; margin-top: 5px;">
+                <div class="form-group toggle-group" style="grid-column: span 2; margin-top: 4px;">
                     <label for="auto_generate_audio" class="toggle-label">
                         <span>Auto-Generate Voicemail Audio</span>
                         <input type="checkbox" id="auto_generate_audio" name="auto_generate_audio">
@@ -57,35 +57,34 @@
                     </label>
                 </div>
                 
-                <div class="form-group" style="grid-column: span 2; margin-top: 5px;">
+                <div class="form-group" style="grid-column: span 2; margin-top: 4px;">
                     <label for="custom_prompt">Outreach Prompt / Email Objective</label>
-                    <textarea id="custom_prompt" name="custom_prompt" rows="2" placeholder="Define exactly what the email should be about (e.g., pitch our software development services, request feedback on their recent launch, discuss partnership, etc.)" required>Pitch our UAV and AI drone-based crop monitoring solutions for green index estimation and precision agriculture.</textarea>
+                    <textarea id="custom_prompt" name="custom_prompt" rows="2" placeholder="Define exactly what the email should be about" required>Pitch our UAV and AI drone-based crop monitoring solutions for green index estimation and precision agriculture.</textarea>
                 </div>
             </div>
 
-            <!-- Upload Zones Grid: side-by-side for compact height -->
             <div class="zones-grid">
                 <div class="form-group zone-container">
-                    <label>Attach Reference Document <span style="text-transform: none; font-weight: 400; letter-spacing: 0; color: var(--text-tertiary);">(PDF, DOCX, TXT — optional)</span></label>
+                    <label>Reference Document <span style="text-transform: none; font-weight: 400; color: var(--text-light);">(PDF, DOCX, TXT — optional)</span></label>
                     <div class="prompt-doc-zone" id="prompt-doc-zone">
                         <input type="file" id="prompt-doc-input" accept=".pdf,.docx,.txt" class="hidden-input">
                         <div class="upload-content" id="prompt-doc-empty">
-                            <i class="fa-solid fa-file-lines upload-icon" style="font-size: 20px; margin-bottom: 8px;"></i>
-                            <p class="upload-text" style="font-size: 13px;">Attach a job desc or reference doc</p>
-                            <p class="upload-subtext" style="font-size: 11px;">Content will be parsed for context</p>
+                            <i class="fa-solid fa-file-lines upload-icon"></i>
+                            <p class="upload-text">Attach a reference doc</p>
+                            <p class="upload-subtext">Content will be parsed for context</p>
                         </div>
                         <div class="prompt-doc-loaded hidden" id="prompt-doc-loaded">
-                            <i class="fa-solid fa-file-circle-check" style="font-size: 24px; color: var(--success);"></i>
+                            <i class="fa-solid fa-file-circle-check" style="font-size: 22px; color: var(--success);"></i>
                             <div class="prompt-doc-info">
-                                <span id="prompt-doc-filename" style="font-size: 12px;"></span>
-                                <span id="prompt-doc-filesize" class="upload-subtext" style="font-size: 10px;"></span>
+                                <span id="prompt-doc-filename"></span>
+                                <span id="prompt-doc-filesize" class="upload-subtext"></span>
                             </div>
                             <button type="button" class="btn btn-sm btn-secondary" id="prompt-doc-remove">
                                 <i class="fa-solid fa-xmark"></i> Remove
                             </button>
                         </div>
                         <div class="prompt-doc-loading hidden" id="prompt-doc-loading">
-                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 18px; color: var(--accent);"></i>
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 16px; color: var(--accent);"></i>
                             <span style="font-size: 12px;">Extracting text...</span>
                         </div>
                     </div>
@@ -94,13 +93,13 @@
                 </div>
 
                 <div class="form-group zone-container">
-                    <label>Upload Prospects File <span style="text-transform: none; font-weight: 400; letter-spacing: 0; color: var(--text-tertiary);">(CSV, XLSX, XLS — required)</span></label>
+                    <label>Prospects File <span style="text-transform: none; font-weight: 400; color: var(--text-light);">(CSV, XLSX — required)</span></label>
                     <div class="upload-zone" id="upload-zone">
                         <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls" class="hidden-input">
                         <div class="upload-content">
-                            <i class="fa-solid fa-cloud-arrow-up upload-icon" style="font-size: 20px; margin-bottom: 8px;"></i>
-                            <p class="upload-text" style="font-size: 13px;">Drag & drop prospects CSV, or <span>browse</span></p>
-                            <p class="upload-subtext" style="font-size: 11px;">Must contain: name, email, company, title, linkedin_url</p>
+                            <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                            <p class="upload-text">Drag & drop prospects CSV, or <span>browse</span></p>
+                            <p class="upload-subtext">Must contain: name, email, company, title, linkedin_url</p>
                         </div>
                     </div>
                 </div>
@@ -110,24 +109,20 @@
                 <h3><i class="fa-solid fa-list-check"></i> Loaded Prospects Preview (<span id="prospect-count">0</span> rows)</h3>
                 <div class="table-wrapper">
                     <table id="preview-table">
-                        <thead>
-                            <!-- Will be populated dynamically by JavaScript -->
-                        </thead>
-                        <tbody id="preview-tbody">
-                            <!-- Will be populated dynamically by JavaScript -->
-                        </tbody>
+                        <thead></thead>
+                        <tbody id="preview-tbody"></tbody>
                     </table>
                 </div>
             </div>
 
             <input type="hidden" id="uploaded-filepath" name="filepath">
-            <button type="submit" id="submit-btn" class="btn btn-primary btn-block btn-large disabled-btn" disabled style="padding: 10px 20px; margin-top: 10px;">
+            <button type="submit" id="submit-btn" class="btn btn-primary btn-block btn-large disabled-btn" disabled style="margin-top: 12px;">
                 <i class="fa-solid fa-rocket"></i> Launch Multi-Agent Campaign
             </button>
         </form>
     </div>
 
-    <div class="card history-card">
+    <div class="card" style="position: sticky; top: 80px;">
         <div class="card-header">
             <h2><i class="fa-solid fa-clock-rotate-left"></i> Campaign History</h2>
         </div>
@@ -135,7 +130,7 @@
         <div class="campaign-history-list">
             {% if campaigns %}
                 {% for camp in campaigns %}
-                    <div class="history-item">
+                    <div class="history-item" onclick="window.location.href='/campaign/{{ camp.campaign_id }}/pipeline'">
                         <div class="history-item-header">
                             <span class="campaign-badge">ID: {{ camp.campaign_id }}</span>
                             <span class="status-badge {{ camp.status }}">{{ camp.status.upper() }}</span>

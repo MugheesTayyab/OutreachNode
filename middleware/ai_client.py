@@ -2,38 +2,52 @@ import time
 import os
 import json
 import logging
-from config.settings import API_KEY, MODEL_NAME, MAX_RETRIES
+from config.settings import MODEL_NAME, MAX_RETRIES
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def _get_saved_settings():
+    try:
+        from middleware.state_manager import StateManager
+        return StateManager.load_settings()
+    except Exception:
+        return {}
+
 class AIClient:
     def __init__(self):
-        self.model_name = MODEL_NAME
-        api_key = os.getenv("API_KEY") or os.getenv("GEMINI_API_KEY")
+        saved = _get_saved_settings()
+
+        api_key = saved.get("api_key") or os.getenv("API_KEY") or os.getenv("GEMINI_API_KEY", "")
         surf_key = os.getenv("SURF_API_KEY")
-        
+        self.model_name = saved.get("api_model") or MODEL_NAME
+        self.surf_base_url = (saved.get("api_base_url") or os.getenv("SURF_BASE_URL", "https://unlimited.surf/v1")).rstrip("/")
+
+        self.api_key = api_key
+        self.surf_key = surf_key
         self.is_surf = (api_key and api_key.startswith("ua_")) or bool(surf_key)
         self.is_openrouter = api_key and api_key.startswith("sk-or-")
         self.is_openai = not (self.is_surf or self.is_openrouter)
 
+    def _estimate_tokens(self, text: str) -> int:
+        return max(1, len(text) // 4)
+
+    def _estimate_cost(self, tokens: int) -> float:
+        rate_per_1k = 0.015
+        return round(tokens / 1000 * rate_per_1k, 6)
+
     def generate(self, system_prompt: str, user_prompt: str, temperature: float = 0.7, json_mode: bool = False) -> str:
-        """
-        Generate content using OpenRouter, Unlimited Surf, or OpenAI with retry mechanism.
-        """
-        api_key = os.getenv("API_KEY") or os.getenv("GEMINI_API_KEY")
-        surf_key = os.getenv("SURF_API_KEY")
-        surf_base_url = os.getenv("SURF_BASE_URL", "https://unlimited.surf/v1")
-        
-        is_surf = (api_key and api_key.startswith("ua_")) or bool(surf_key)
-        is_openrouter = api_key and api_key.startswith("sk-or-")
-        
+        api_key = self.api_key
+        surf_key = self.surf_key
+        surf_base_url = self.surf_base_url
+
+        is_surf = self.is_surf
+        is_openrouter = self.is_openrouter
+
         if is_surf:
             provider_name = "Unlimited Surf"
             active_key = surf_key if surf_key else api_key
-            base_url = surf_base_url.rstrip("/")
-            url = f"{base_url}/messages"
+            url = f"{surf_base_url}/messages"
             headers = {
                 "Authorization": f"Bearer {active_key}",
                 "Content-Type": "application/json",
@@ -55,7 +69,7 @@ class AIClient:
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json"
             }
-        
+
         if is_surf:
             payload = {
                 "model": self.model_name,
@@ -76,7 +90,7 @@ class AIClient:
             }
             if json_mode:
                 payload["response_format"] = {"type": "json_object"}
-            
+
         for attempt in range(1, MAX_RETRIES + 1):
             try:
                 logger.info(f"Generating content via {provider_name} using {self.model_name} (Attempt {attempt}/{MAX_RETRIES})...")
@@ -84,7 +98,7 @@ class AIClient:
                 response = requests.post(url, json=payload, headers=headers, timeout=60)
                 response.raise_for_status()
                 res_json = response.json()
-                
+
                 if "choices" in res_json and res_json["choices"]:
                     content = res_json["choices"][0]["message"]["content"]
                 elif "content" in res_json and res_json["content"]:
@@ -97,7 +111,7 @@ class AIClient:
                     raise ValueError(f"{provider_name} API error: {res_json['error']}")
                 else:
                     raise ValueError(f"{provider_name} unrecognized response structure: {response.text}")
-                    
+
                 if not content:
                     raise ValueError(f"Received empty content from {provider_name} API.")
                 return content
@@ -108,9 +122,6 @@ class AIClient:
                 time.sleep(2 ** attempt)
 
     def generate_json(self, system_prompt: str, user_prompt: str, temperature: float = 0.7) -> dict:
-        """
-        Generate JSON content and return it parsed as a Python dictionary.
-        """
         response_text = self.generate(system_prompt, user_prompt, temperature, json_mode=True)
         try:
             return json.loads(response_text)

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics — Outreach Node{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <h1 class="gradient-title">Campaign Analytics</h1>
+    <p class="hero-tagline">Track performance metrics across all your campaigns.</p>
+</section>
+
+<div class="stats-bar">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_campaigns }}</div>
+        <div class="stat-label">Total Campaigns</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_prospects }}</div>
+        <div class="stat-label">Total Prospects</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ completed_campaigns }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ running_campaigns }}</div>
+        <div class="stat-label">Running</div>
+    </div>
+</div>
+
+<div class="stats-bar" style="margin-top: 24px; grid-template-columns: repeat(4, 1fr);">
+    <div class="stat-card" style="border-color: var(--accent);">
+        <div class="stat-value" style="color: var(--accent);">${{ "%.4f"|format(total_cost) }}</div>
+        <div class="stat-label">Total AI Cost</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ "{:,}".format(total_tokens) }}</div>
+        <div class="stat-label">Total Tokens Used</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: var(--success);">{{ total_sent }}</div>
+        <div class="stat-label">Prospects Sent</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: var(--text-primary);">{{ "%.1f"|format(total_cost / total_campaigns|round(1) if total_campaigns > 0 else 0) }}¢</div>
+        <div class="stat-label">Avg Cost / Campaign</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-chart-pie"></i> Campaign Breakdown</h2>
+        </div>
+        {% if campaigns %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for camp in campaigns %}
+            <div style="padding: 16px; border: 1px solid var(--border); border-radius: var(--radius);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
+                    <span style="font-weight: 600; font-size: 14px;">Campaign {{ camp.campaign_id }}</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        {% if camp.tags %}<span style="font-size: 11px; color: var(--accent);"><i class="fa-solid fa-tag"></i> {{ camp.tags }}</span>{% endif %}
+                        <span class="status-badge {{ camp.status }}">{{ camp.status.upper() }}</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 20px; font-size: 13px; color: var(--text-secondary); flex-wrap: wrap;">
+                    <span><strong>{{ camp.total_prospects }}</strong> prospects</span>
+                    <span><strong>{{ camp.settings.goal.capitalize() }}</strong></span>
+                    <span><strong>{{ camp.settings.tone.capitalize() }}</strong> tone</span>
+                    {% if camp.avg_score %}<span><strong>{{ camp.avg_score }}</strong> avg score</span>{% endif %}
+                    {% if camp.total_tokens %}<span><strong>{{ "{:,}".format(camp.total_tokens) }}</strong> tokens</span>{% endif %}
+                </div>
+                {% if camp.status == 'completed' %}
+                <div style="margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-light); margin-bottom: 4px;">
+                        <span>Progress</span>
+                        <span>100%</span>
+                    </div>
+                    <div class="timeline-progress-track">
+                        <div class="timeline-progress-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-solid fa-chart-simple empty-icon"></i>
+            <p>No campaign data yet. Run a campaign to see analytics.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-lightbulb"></i> Performance Insights</h2>
+        </div>
+        {% if campaigns %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="padding: 18px; border: 1px solid var(--border); border-radius: var(--radius);">
+                <p style="font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px;">Success Rate</p>
+                <p style="font-size: 28px; font-weight: 800; color: var(--accent);">{% if total_campaigns > 0 %}{{ ((completed_campaigns / total_campaigns) * 100)|round(1) }}%{% else %}0%{% endif %}</p>
+                <p style="font-size: 13px; color: var(--text-light);">of campaigns completed successfully</p>
+            </div>
+            <div style="padding: 18px; border: 1px solid var(--border); border-radius: var(--radius);">
+                <p style="font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px;">Avg. Prospects per Campaign</p>
+                <p style="font-size: 28px; font-weight: 800; color: #10B981;">{% if total_campaigns > 0 %}{{ (total_prospects / total_campaigns)|round(0) }}{% else %}0{% endif %}</p>
+                <p style="font-size: 13px; color: var(--text-light);">prospects targeted on average</p>
+            </div>
+            <div style="padding: 18px; border: 1px solid var(--border); border-radius: var(--radius);">
+                <p style="font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px;">Most Used Goal</p>
+                <p style="font-size: 20px; font-weight: 700; color: var(--text-primary);">{{ most_used_goal }}</p>
+                <p style="font-size: 13px; color: var(--text-light);">top campaign objective</p>
+            </div>
+            <div style="padding: 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--accent-light);">
+                <p style="font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px;">Token & Cost Summary</p>
+                <p style="font-size: 22px; font-weight: 800; color: var(--accent);">${{ "%.4f"|format(total_cost) }}</p>
+                <p style="font-size: 13px; color: var(--text-muted);">{{ "{:,}".format(total_tokens) }} total tokens across {{ total_campaigns }} campaigns</p>
+                <p style="font-size: 13px; color: var(--text-muted);">Avg {{ "{:,}".format((total_tokens / total_campaigns)|round(0)|int) if total_campaigns > 0 else 0 }} tokens/campaign</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-solid fa-lightbulb empty-icon"></i>
+            <p>Insights will appear after your first campaign.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

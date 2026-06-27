@@ -18,6 +18,9 @@ GEMINI_API_KEY = API_KEY  # Alias for compatibility
 SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 
+# Unsubscribe
+UNSUBSCRIBE_EMAIL = os.getenv("UNSUBSCRIBE_EMAIL", "")
+
 # Config Parameters
 MODEL_NAME = os.getenv("MODEL_NAME", "claude-opus-4-8")
 MAX_RETRIES = 3
@@ -26,8 +29,12 @@ MAX_RETRIES = 3
 INPUT_DIR = BASE_DIR / 'data' / 'input'
 OUTPUT_DIR = BASE_DIR / 'data' / 'output'
 AUDIO_DIR = BASE_DIR / 'static' / 'audio'
+TEMPLATES_DIR = BASE_DIR / 'data' / 'templates'
+SETTINGS_FILE = BASE_DIR / 'data' / 'settings.json'
+SUPPRESSED_FILE = BASE_DIR / 'data' / 'suppressed_emails.txt'
 
 # Ensure directories exist
 INPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+TEMPLATES_DIR.mkdir(parents=True, exist_ok=True)

@@ -7,7 +7,7 @@ class CopywriterAgent:
     def __init__(self, ai_client: AIClient):
         self.ai_client = ai_client
 
-    def run(self, prospect_profile: dict, linkedin_data: dict, company_context: dict, campaign_settings: dict, research_plan: dict = None) -> dict:
+    def run(self, prospect_profile: dict, linkedin_data: dict, company_context: dict, campaign_settings: dict, research_plan: dict = None, calendly_url: str = "") -> dict:
         """
         Generates a highly personalized cold email draft.
         When a research_plan is provided, uses its email_angle and key_requirements
@@ -38,6 +38,10 @@ class CopywriterAgent:
         if tone_guidance:
             tone_section = f"\n\nTONE GUIDANCE (from strategy): {tone_guidance}\n"
 
+        calendly_section = ""
+        if calendly_url:
+            calendly_section = f"\n\nCALENDLY LINK: {calendly_url}\nYou may optionally suggest the prospect book a time directly using this link in the CTA.\n"
+
         system_prompt = f"""
 You are a world-class B2B copywriter specializing in highly personalized, high-converting cold outreach designed to help business developers find clients, and students or job seekers find career opportunities.
 Your task is to write a short, compelling, and professional cold email.
@@ -52,9 +56,10 @@ Outreach Purpose & Strategy:
 - Unique Personalization: DO NOT reuse the same structure or phrases for different companies. Each email must feel completely handcrafted, logical, and unique to the specific prospect.
 - CTA: Include a low-friction, single call to action (e.g. "Do you have 5 minutes for a quick chat next Tuesday?" or "Would you be open to a brief chat about upcoming projects?").
 - Tone: Match the tone requested by the user.
-{angle_section}{key_req_section}{tone_section}
+{angle_section}{key_req_section}{tone_section}{calendly_section}
 Output a valid JSON object. Do not include any extra text. The JSON keys must be:
 - "subject": A catchy, personalized subject line (no spammy clickbait).
+- "subject_b": An alternative subject line (A/B variant B) — different angle or hook from subject A.
 - "body": The full body of the email.
 - "personalization_hooks": A list of the specific facts, news, or LinkedIn details you incorporated to make it personalized.
 """
@@ -99,6 +104,7 @@ Write the email and output the JSON.
                 raise e
             return {
                 "subject": f"Quick question regarding {prospect_profile.get('company')} growth",
+                "subject_b": f"Thoughts on {prospect_profile.get('company')}'s recent work?",
                 "body": f"Hi {prospect_profile.get('name')},\n\nI've been following {prospect_profile.get('company')}'s updates recently, especially your work as {prospect_profile.get('title')}.\n\nHere at {campaign_settings.get('sender_company')}, we help companies address core efficiency goals. I'd love to connect and see if we can support your initiatives.\n\nDo you have a few minutes for a quick call next week?\n\nBest regards,\n\n{campaign_settings.get('sender_name')}\n{campaign_settings.get('sender_role')}, {campaign_settings.get('sender_company')}",
                 "personalization_hooks": ["Job title", "Company name"]
             }

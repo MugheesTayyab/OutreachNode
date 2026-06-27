@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}Start Campaign — Outreach Node{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <h1 class="gradient-title">Start New Campaign</h1>
+    <p class="hero-tagline">Configure your multi-agent campaign with AI-powered outreach and quality assurance.</p>
+</section>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2><i class="fa-solid fa-sliders"></i> Campaign Setup</h2>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                {% if templates %}
+                <select id="template-select" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-family: var(--font);">
+                    <option value="">Load Template...</option>
+                    {% for t in templates %}
+                    <option value="{{ t.id }}">{{ t.name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+                <button type="button" class="btn btn-secondary btn-sm" id="save-template-btn" title="Save current settings as template">
+                    <i class="fa-solid fa-bookmark"></i> Save as Template
+                </button>
+            </div>
+        </div>
+        <form id="campaign-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="sender_name">Sender Name</label>
+                    <input type="text" id="sender_name" name="sender_name" value="{{ saved.default_sender_name or 'Mughees Tayyab' }}" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="sender_role">Sender Role</label>
+                    <input type="text" id="sender_role" name="sender_role" value="{{ saved.default_sender_role or 'Founder' }}" placeholder="Enter your role" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tone">Email Tone</label>
+                    <select id="tone" name="tone">
+                        <option value="friendly" {% if saved.default_tone == 'friendly' %}selected{% endif %}>Friendly & Collaborative</option>
+                        <option value="formal" {% if saved.default_tone == 'formal' or not saved.default_tone %}selected{% endif %}>Professional & Formal</option>
+                        <option value="bold" {% if saved.default_tone == 'bold' %}selected{% endif %}>Bold & Direct</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="goal">Campaign Goal</label>
+                    <select id="goal" name="goal">
+                        <option value="partnership" {% if saved.default_goal == 'partnership' or not saved.default_goal %}selected{% endif %}>Strategic Partnership</option>
+                        <option value="meeting" {% if saved.default_goal == 'meeting' %}selected{% endif %}>Book a Call / Meeting</option>
+                        <option value="demo" {% if saved.default_goal == 'demo' %}selected{% endif %}>Schedule a Demo</option>
+                        <option value="sales" {% if saved.default_goal == 'sales' %}selected{% endif %}>Direct Sales Pitch</option>
+                        <option value="networking" {% if saved.default_goal == 'networking' %}selected{% endif %}>Professional Networking</option>
+                        <option value="feedback" {% if saved.default_goal == 'feedback' %}selected{% endif %}>Product Feedback & Testing</option>
+                        <option value="collab" {% if saved.default_goal == 'collab' %}selected{% endif %}>Content Collaboration</option>
+                        <option value="investment" {% if saved.default_goal == 'investment' %}selected{% endif %}>Fundraising & Pitching</option>
+                        <option value="recruiting" {% if saved.default_goal == 'recruiting' %}selected{% endif %}>Talent Acquisition & Recruiting</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="tags">Tags <span style="font-weight: 400; color: var(--text-light);">(comma-separated)</span></label>
+                    <input type="text" id="tags" name="tags" placeholder="investor, q1-2026, follow-up">
+                </div>
+
+                <div class="form-group toggle-group" style="margin-top: 4px;">
+                    <label class="toggle-label">
+                        <span>A/B Subject Line Testing</span>
+                        <input type="checkbox" id="ab_test" name="ab_test">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group toggle-group" style="grid-column: span 2; margin-top: 4px;">
+                    <label for="auto_generate_audio" class="toggle-label">
+                        <span>Auto-Generate Voicemail Audio</span>
+                        <input type="checkbox" id="auto_generate_audio" name="auto_generate_audio" {% if saved.default_auto_audio %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="grid-column: span 2; margin-top: 4px;">
+                    <label for="custom_prompt">Outreach Prompt / Email Objective</label>
+                    <textarea id="custom_prompt" name="custom_prompt" rows="2" placeholder="Define exactly what the email should be about" required>Pitch our UAV and AI drone-based crop monitoring solutions for green index estimation and precision agriculture.</textarea>
+                </div>
+            </div>
+
+            <div class="zones-grid">
+                <div class="form-group zone-container">
+                    <label>Reference Document <span style="text-transform: none; font-weight: 400; color: var(--text-light);">(PDF, DOCX, TXT — optional)</span></label>
+                    <div class="prompt-doc-zone" id="prompt-doc-zone">
+                        <input type="file" id="prompt-doc-input" accept=".pdf,.docx,.txt" class="hidden-input">
+                        <div class="upload-content" id="prompt-doc-empty">
+                            <i class="fa-solid fa-file-lines upload-icon"></i>
+                            <p class="upload-text">Attach a reference doc</p>
+                            <p class="upload-subtext">Content will be parsed for context</p>
+                        </div>
+                        <div class="prompt-doc-loaded hidden" id="prompt-doc-loaded">
+                            <i class="fa-solid fa-file-circle-check" style="font-size: 22px; color: var(--success);"></i>
+                            <div class="prompt-doc-info">
+                                <span id="prompt-doc-filename"></span>
+                                <span id="prompt-doc-filesize" class="upload-subtext"></span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-secondary" id="prompt-doc-remove">
+                                <i class="fa-solid fa-xmark"></i> Remove
+                            </button>
+                        </div>
+                        <div class="prompt-doc-loading hidden" id="prompt-doc-loading">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 16px; color: var(--accent);"></i>
+                            <span style="font-size: 12px;">Extracting text...</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="prompt-doc-content" name="prompt_doc_content">
+                    <input type="hidden" id="prompt-doc-filename-hidden" name="prompt_doc_filename">
+                </div>
+
+                <div class="form-group zone-container">
+                    <label>Prospects File <span style="text-transform: none; font-weight: 400; color: var(--text-light);">(CSV, XLSX — required)</span></label>
+                    <div class="upload-zone" id="upload-zone">
+                        <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls" class="hidden-input">
+                        <div class="upload-content">
+                            <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                            <p class="upload-text">Drag & drop prospects CSV, or <span>浏览</span></p>
+                            <p class="upload-subtext">Must contain: name, email, company, title, linkedin_url</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="csv-preview-container" class="csv-preview-container hidden">
+                <h3><i class="fa-solid fa-list-check"></i> Loaded Prospects Preview (<span id="prospect-count">0</span> rows)</h3>
+                <div class="table-wrapper">
+                    <table id="preview-table">
+                        <thead></thead>
+                        <tbody id="preview-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <input type="hidden" id="uploaded-filepath" name="filepath">
+            <button type="submit" id="submit-btn" class="btn btn-primary btn-block btn-large disabled-btn" disabled style="margin-top: 12px;">
+                <i class="fa-solid fa-rocket"></i> Launch Multi-Agent Campaign
+            </button>
+        </form>
+    </div>
+
+    <div class="card" style="position: sticky; top: 80px;">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-circle-info"></i> Quick Guide</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <div style="width: 32px; height: 32px; border-radius: var(--radius); background: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--accent); font-weight: 700; font-size: 13px;">1</div>
+                <div>
+                    <p style="font-size: 14px; font-weight: 600; margin-bottom: 2px;">Upload Prospects</p>
+                    <p style="font-size: 13px; color: var(--text-light);">Upload a CSV or Excel file with prospect data (name, email, company, title).</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <div style="width: 32px; height: 32px; border-radius: var(--radius); background: #ECFDF5; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #10B981; font-weight: 700; font-size: 13px;">2</div>
+                <div>
+                    <p style="font-size: 14px; font-weight: 600; margin-bottom: 2px;">Configure Campaign</p>
+                    <p style="font-size: 13px; color: var(--text-light);">Set your name, tone, goal, tags, and define the outreach objective.</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <div style="width: 32px; height: 32px; border-radius: var(--radius); background: #FEF3C7; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #D97706; font-weight: 700; font-size: 13px;">3</div>
+                <div>
+                    <p style="font-size: 14px; font-weight: 600; margin-bottom: 2px;">Launch & Monitor</p>
+                    <p style="font-size: 13px; color: var(--text-light);">AI agents will craft, review, and optimize your emails in real-time.</p>
+                </div>
+            </div>
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 4px 0;">
+            <div style="font-size: 13px; color: var(--text-muted);">
+                <p><i class="fa-solid fa-tag"></i> Tags help you segment campaigns</p>
+                <p style="margin-top: 4px;"><i class="fa-solid fa-random"></i> A/B testing generates 2 subject variants</p>
+                <p style="margin-top: 4px;"><i class="fa-solid fa-bookmark"></i> Save templates to reuse settings</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('template-select')?.addEventListener('change', async function() {
+    if (!this.value) return;
+    const res = await fetch(`/api/templates/${this.value}`);
+    const tmpl = await res.json();
+    if (tmpl.config) {
+        for (const [key, val] of Object.entries(tmpl.config)) {
+            const el = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+            if (el) {
+                if (el.type === 'checkbox') el.checked = val;
+                else el.value = val;
+            }
+        }
+        showToast('Template loaded!', 'success');
+    }
+    this.value = '';
+});
+
+document.getElementById('save-template-btn')?.addEventListener('click', async () => {
+    const name = prompt('Template name:');
+    if (!name) return;
+    const config = {};
+    document.querySelectorAll('#campaign-form [name]').forEach(el => {
+        if (el.type === 'checkbox') config[el.name] = el.checked;
+        else config[el.name] = el.value;
+    });
+    await fetch('/api/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, config })
+    });
+    showToast('Template saved! Refresh to see it in the dropdown.', 'success');
+});
+</script>
+{% endblock %}

@@ -147,30 +147,30 @@
     </div>
 </div>
 
-<div class="modal-backdrop hidden" id="error-modal">
-    <div class="modal-container" style="max-width: 480px; border: 1.5px solid rgba(220, 38, 38, 0.4); box-shadow: 0 20px 40px rgba(220, 38, 38, 0.08);">
-        <div class="modal-header" style="border-bottom: 1px solid rgba(220, 38, 38, 0.15);">
-            <h3 style="color: var(--danger); display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-triangle-exclamation"></i> Critical Pipeline Failure</h3>
-            <button class="modal-close-btn" onclick="closeErrorModal()">&times;</button>
-        </div>
-        <div style="padding: 28px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px;">
-            <div style="font-size: 44px; color: var(--danger); animation: pulse 2s infinite;">
-                <i class="fa-solid fa-circle-exclamation"></i>
+    <div class="modal-backdrop hidden" id="error-modal" role="alertdialog" aria-modal="true" aria-labelledby="error-modal-title">
+        <div class="modal-container" style="max-width: 480px; border: 1.5px solid rgba(220, 38, 38, 0.4); box-shadow: 0 20px 40px rgba(220, 38, 38, 0.08);">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(220, 38, 38, 0.15);">
+                <h3 style="color: var(--danger); display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Critical Pipeline Failure</h3>
+                <button class="modal-close-btn" onclick="closeErrorModal()" aria-label="Close error modal">&times;</button>
             </div>
-            <h4 id="error-modal-title" style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin: 0;">API Key / Rate Limit Reached</h4>
-            <p id="error-modal-message" style="font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); margin: 0;">
-                The agents have stopped working. The API Key might be invalid, or the request rate limit has been reached.
-            </p>
-            <div id="error-modal-details" style="width: 100%; background: var(--bg); border: 1.5px solid rgba(220, 38, 38, 0.12); border-radius: 6px; padding: 14px; font-family: 'SF Mono', monospace; font-size: 12px; text-align: left; max-height: 120px; overflow-y: auto; color: var(--danger); word-break: break-all; line-height: 1.4;">
-                No details available.
+            <div style="padding: 20px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                <div style="font-size: 40px; color: var(--danger);">
+                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                </div>
+                <h4 id="error-modal-title" style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0;">API Key / Rate Limit Reached</h4>
+                <p id="error-modal-message" style="font-size: 13px; line-height: 1.5; color: var(--text-secondary); margin: 0;">
+                    The agents have stopped working. The API Key might be invalid, or the request rate limit has been reached.
+                </p>
+                <div id="error-modal-details" style="width: 100%; background: var(--bg); border: 1px solid rgba(220, 38, 38, 0.12); border-radius: 6px; padding: 12px; font-family: 'SF Mono', monospace; font-size: 11px; text-align: left; max-height: 100px; overflow-y: auto; color: var(--danger); word-break: break-all; line-height: 1.4;">
+                    No details available.
+                </div>
             </div>
-        </div>
-        <div class="modal-footer" style="justify-content: center; gap: 12px; border-top: 1px solid var(--border); background: rgba(0, 0, 0, 0.01);">
-            <button class="btn btn-secondary" onclick="closeErrorModal()">Close</button>
-            <a href="/" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger);">Go to Dashboard</a>
+            <div class="modal-footer" style="justify-content: center; gap: 8px; border-top: 1px solid var(--border); background: rgba(0, 0, 0, 0.01); padding: 12px 24px;">
+                <button class="btn btn-secondary" onclick="closeErrorModal()">Close</button>
+                <a href="/" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger);">Go to Dashboard</a>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}
 
 {% block scripts %}

@@ -4,45 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Outreach Node — A premium multi-agent cold email campaign manager with self-correcting AI quality assurance and real-time pipeline orchestration.">
-    <meta name="theme-color" content="#059669">
+    <meta name="theme-color" content="#6366F1">
     <title>{% block title %}Outreach Node — Custom Cold Emailer{% endblock %}</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23059669'/%3E%3Cpath d='M50 20C38.954 20 30 28.954 30 40v20c0 11.046 8.954 20 20 20s20-8.954 20-20V40c0-11.046-8.954-20-20-20z' fill='%23fff' opacity='.9'/%3E%3Cpath d='M45 40l-5 15h6l-2 10 10-15h-6l5-10z' fill='%23059669'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%236366f1'/%3E%3Cpath d='M50 20C38.954 20 30 28.954 30 40v20c0 11.046 8.954 20 20 20s20-8.954 20-20V40c0-11.046-8.954-20-20-20z' fill='%23fff' opacity='.9'/%3E%3Cpath d='M45 40l-5 15h6l-2 10 10-15h-6l5-10z' fill='%236366f1'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=5.0">
 </head>
 <body>
     {% block header %}
-    <header class="app-header" data-component="header">
+    <header class="app-header">
         <div class="header-container">
-            <a href="/" class="app-logo" data-component="header-logo" aria-label="Outreach Node Home">
-                <span class="logo-text">Outreach<span>Node</span></span>
+            <a href="/" class="app-logo" aria-label="Outreach Node Home">
+                <div class="logo-wrapper">
+                    <div class="logo-icon"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></div>
+                    <span class="logo-text">Outreach<span>Node</span></span>
+                </div>
             </a>
-            <nav class="app-nav" data-component="header-nav">
-                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
-                    <i class="fa-solid fa-chart-simple"></i> Dashboard
+            <nav class="app-nav">
+                <a href="/start-campaign" class="nav-link {% if request.path == '/start-campaign' %}active{% endif %}">
+                    <i class="fa-solid fa-rocket" aria-hidden="true"></i>Start Campaign
+                </a>
+                <a href="/campaign-history" class="nav-link {% if request.path == '/campaign-history' %}active{% endif %}">
+                    <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>History
+                </a>
+                <a href="/analytics" class="nav-link {% if request.path == '/analytics' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-line" aria-hidden="true"></i>Analytics
+                </a>
+                <a href="/notifications" class="nav-link {% if request.path == '/notifications' %}active{% endif %}">
+                    <i class="fa-solid fa-bell" aria-hidden="true"></i>Notifications
+                </a>
+                <a href="/settings" class="nav-link {% if request.path == '/settings' %}active{% endif %}">
+                    <i class="fa-solid fa-gear" aria-hidden="true"></i>Settings
                 </a>
             </nav>
+            <div class="user-profile">
+                <div class="avatar">MT</div>
+                <div class="user-info">
+                    <span class="user-name">Mughees Tayyab</span>
+                    <span class="user-role">UAV Lab Internship</span>
+                </div>
+            </div>
         </div>
     </header>
     {% endblock %}
 
-    <main class="app-main" data-component="main-layout">
+    <main class="app-main">
         {% block content %}{% endblock %}
     </main>
 
     {% block footer %}
-    <footer class="app-footer" data-component="app-footer">
+    <footer class="app-footer">
         <p>&copy; 2026 Outreach Node. Developed for UAV Lab Internship by Mughees Tayyab.</p>
     </footer>
     {% endblock %}
 
-    <div id="toast-container" class="toast-container" data-component="toast-container">
-    </div>
+    <div id="toast-container" class="toast-container"></div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=1.2"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=5.0"></script>
+    <script>
+    (function applyAppearance() {
+        fetch('/api/settings').then(r=>r.json()).then(s => {
+            const theme = s.theme_mode || 'light';
+            const accent = s.accent_color || 'indigo';
+            const colors = {indigo:'#6366F1',blue:'#3B82F6',green:'#10B981',purple:'#8B5CF6',pink:'#EC4899'};
+            const hovers = {indigo:'#4F46E5',blue:'#2563EB',green:'#059669',purple:'#7C3AED',pink:'#DB2777'};
+            const lights = {indigo:'#EEF2FF',blue:'#EFF6FF',green:'#ECFDF5',purple:'#F5F3FF',pink:'#FDF2F8'};
+            if (colors[accent]) {
+                document.documentElement.style.setProperty('--accent', colors[accent]);
+                document.documentElement.style.setProperty('--accent-hover', hovers[accent]);
+                document.documentElement.style.setProperty('--accent-light', lights[accent]);
+            }
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.documentElement.style.setProperty('--bg', '#0F172A');
+                document.documentElement.style.setProperty('--bg-secondary', '#1E293B');
+                document.documentElement.style.setProperty('--bg-tertiary', '#334155');
+                document.documentElement.style.setProperty('--text-primary', '#F1F5F9');
+                document.documentElement.style.setProperty('--text-secondary', '#CBD5E1');
+                document.documentElement.style.setProperty('--text-muted', '#94A3B8');
+                document.documentElement.style.setProperty('--text-light', '#64748B');
+                document.documentElement.style.setProperty('--border', '#334155');
+                document.documentElement.style.setProperty('--border-hover', '#475569');
+            } else if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.classList.add('dark-mode');
+                document.documentElement.style.setProperty('--bg', '#0F172A');
+                document.documentElement.style.setProperty('--bg-secondary', '#1E293B');
+                document.documentElement.style.setProperty('--bg-tertiary', '#334155');
+                document.documentElement.style.setProperty('--text-primary', '#F1F5F9');
+                document.documentElement.style.setProperty('--text-secondary', '#CBD5E1');
+                document.documentElement.style.setProperty('--text-muted', '#94A3B8');
+                document.documentElement.style.setProperty('--text-light', '#64748B');
+                document.documentElement.style.setProperty('--border', '#334155');
+                document.documentElement.style.setProperty('--border-hover', '#475569');
+            }
+        });
+    })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6366F1">
+    <title>Unsubscribe — Outreach Node</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg: #FFFFFF; --accent: #6366F1; --accent-light: #EEF2FF; --border: #E2E8F0; --text-primary: #0F172A; --text-muted: #64748B; --font: 'Inter', sans-serif; --radius: 8px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font); background: var(--bg); min-height: 100vh; display: flex; align-items: center; justify-content: center; color: var(--text-primary); }
+        .card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 48px; max-width: 440px; width: 100%; text-align: center; }
+        .icon { width: 64px; height: 64px; background: var(--accent-light); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 28px; color: var(--accent); }
+        h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        p { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; }
+        input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; font-family: var(--font); margin-bottom: 12px; }
+        input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 24px; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: var(--font); border: none; cursor: pointer; text-decoration: none; background: var(--accent); color: white; transition: background 0.15s ease; }
+        .btn:hover { background: #4F46E5; }
+        .success { color: #10B981; font-weight: 600; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon"><i class="fa-solid fa-envelope-circle-check"></i></div>
+        {% if message %}
+            <p class="success">{{ message }}</p>
+            <a href="/" class="btn" style="margin-top: 8px;"><i class="fa-solid fa-house"></i> Return Home</a>
+        {% else %}
+            <h1>Unsubscribe</h1>
+            <p>You are about to unsubscribe from all Outreach Node emails.</p>
+            <form method="POST">
+                <input type="email" name="email" value="{{ email }}" placeholder="your@email.com" required readonly>
+                <button type="submit" class="btn"><i class="fa-solid fa-check"></i> Confirm Unsubscribe</button>
+            </form>
+        {% endif %}
+    </div>
+</body>
+</html>

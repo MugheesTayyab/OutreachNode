@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Campaign History — Outreach Node{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <h1 class="gradient-title">Campaign History</h1>
+    <p class="hero-tagline">Browse and manage all your past and running campaigns.</p>
+</section>
+
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> All Campaigns</h2>
+        <input type="text" id="history-filter" placeholder="Filter by ID, tags, status..." style="padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-family: var(--font); width: 260px;">
+    </div>
+
+    <div class="campaign-history-list">
+        {% if campaigns %}
+            {% for camp in campaigns %}
+                <div class="history-item" data-campaign-id="{{ camp.campaign_id }}" data-tags="{{ camp.tags }}" data-status="{{ camp.status }}">
+                    <div class="history-item-header">
+                        <span class="campaign-badge">ID: {{ camp.campaign_id }}</span>
+                        {% if camp.tags %}
+                        <span style="font-size: 12px; color: var(--accent);"><i class="fa-solid fa-tag"></i> {{ camp.tags }}</span>
+                        {% endif %}
+                        <span class="status-badge {{ camp.status }}">{{ camp.status.upper() }}</span>
+                    </div>
+                    <div class="history-item-body">
+                        <p><strong>Total Prospects:</strong> {{ camp.total_prospects }} | <strong>Completed:</strong> {{ camp.completed_prospects }}</p>
+                        <p><strong>Goal:</strong> {{ camp.settings.goal.capitalize() }} | <strong>Tone:</strong> {{ camp.settings.tone.capitalize() }}</p>
+                        {% if camp.avg_score %}
+                        <p><strong>Avg Score:</strong> {{ camp.avg_score }}/10</p>
+                        {% endif %}
+                        <div style="margin-top: 6px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-light); margin-bottom: 2px;">
+                                <span>Progress</span>
+                                <span>{{ (camp.completed_prospects / camp.total_prospects * 100)|round(0) if camp.total_prospects > 0 else 0 }}%</span>
+                            </div>
+                            <div class="timeline-progress-track">
+                                <div class="timeline-progress-fill" style="width: {{ (camp.completed_prospects / camp.total_prospects * 100)|round(0) if camp.total_prospects > 0 else 0 }}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="history-item-actions" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        {% if camp.status == 'completed' %}
+                            <a href="/campaign/{{ camp.campaign_id }}/results" class="btn btn-secondary btn-sm"><i class="fa-solid fa-eye"></i> Results</a>
+                            <a href="/api/download/{{ camp.campaign_id }}" class="btn btn-success btn-sm"><i class="fa-solid fa-file-excel"></i> Excel</a>
+                            <button class="btn btn-secondary btn-sm" onclick="exportCampaign('{{ camp.campaign_id }}')"><i class="fa-solid fa-download"></i> Export</button>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteCampaign('{{ camp.campaign_id }}')"><i class="fa-solid fa-trash"></i> Delete</button>
+                        {% elif camp.status == 'running' %}
+                            <a href="/campaign/{{ camp.campaign_id }}/pipeline" class="btn btn-primary btn-sm pulse-button"><i class="fa-solid fa-spinner fa-spin"></i> Pipeline</a>
+                            <button class="btn btn-secondary btn-sm" onclick="pauseCampaign('{{ camp.campaign_id }}')"><i class="fa-solid fa-pause"></i> Pause</button>
+                            <button class="btn btn-danger btn-sm" onclick="cancelCampaign('{{ camp.campaign_id }}')"><i class="fa-solid fa-stop"></i> Cancel</button>
+                        {% elif camp.status == 'paused' %}
+                            <a href="/campaign/{{ camp.campaign_id }}/pipeline" class="btn btn-secondary btn-sm"><i class="fa-solid fa-eye"></i> View</a>
+                            <button class="btn btn-primary btn-sm" onclick="resumeCampaign('{{ camp.campaign_id }}')"><i class="fa-solid fa-play"></i> Resume</button>
+                            <button class="btn btn-danger btn-sm" onclick="cancelCampaign('{{ camp.campaign_id }}')"><i class="fa-solid fa-stop"></i> Cancel</button>
+                        {% else %}
+                            <a href="/campaign/{{ camp.campaign_id }}/pipeline" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate-right"></i> Status</a>
+                            <button class="btn btn-secondary btn-sm" onclick="exportCampaign('{{ camp.campaign_id }}')"><i class="fa-solid fa-download"></i> Export</button>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteCampaign('{{ camp.campaign_id }}')"><i class="fa-solid fa-trash"></i> Delete</button>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-folder-open empty-icon"></i>
+                <p>No campaigns yet. Start your first campaign to see history here.</p>
+                <a href="/start-campaign" class="btn btn-primary" style="margin-top: 16px;">
+                    <i class="fa-solid fa-rocket"></i> Start Campaign
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('history-filter')?.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.history-item').forEach(el => {
+        const text = el.innerText.toLowerCase();
+        el.style.display = text.includes(q) ? '' : 'none';
+    });
+});
+
+async function pauseCampaign(id) {
+    const res = await fetch(`/api/pause-campaign/${id}`, {method:'POST'});
+    if (res.ok) { showToast('Campaign paused','success'); location.reload(); }
+    else showToast('Failed to pause','error');
+}
+async function resumeCampaign(id) {
+    const res = await fetch(`/api/resume-campaign/${id}`, {method:'POST'});
+    if (res.ok) { showToast('Campaign resumed','success'); location.reload(); }
+    else showToast('Failed to resume','error');
+}
+async function cancelCampaign(id) {
+    if (!confirm('Cancel this campaign? This will stop all processing.')) return;
+    const res = await fetch(`/api/cancel-campaign/${id}`, {method:'POST'});
+    if (res.ok) { showToast('Campaign cancelling...','info'); location.reload(); }
+    else showToast('Failed to cancel','error');
+}
+async function deleteCampaign(id) {
+    if (!confirm('Delete this campaign permanently?')) return;
+    const res = await fetch(`/api/delete-campaign/${id}`, {method:'DELETE'});
+    if (res.ok) { showToast('Campaign deleted','success'); location.reload(); }
+    else showToast('Failed to delete','error');
+}
+async function exportCampaign(id) {
+    const res = await fetch(`/api/export-campaign/${id}`);
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `campaign-${id}-config.json`;
+    a.click();
+    showToast('Campaign exported!','success');
+}
+</script>
+{% endblock %}

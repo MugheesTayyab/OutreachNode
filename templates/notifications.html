@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications — Outreach Node{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <h1 class="gradient-title">Notifications</h1>
+    <p class="hero-tagline">Campaign activity log and unsubscribed recipients.</p>
+</section>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-bell"></i> Activity Log</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            {% if notifications %}
+                {% for n in notifications %}
+                <div class="notification-item {{ n.type }}">
+                    <div class="notification-icon">
+                        {% if n.type == 'completed' %}
+                            <i class="fa-solid fa-circle-check" style="color: var(--success);"></i>
+                        {% elif n.type == 'failed' %}
+                            <i class="fa-solid fa-circle-xmark" style="color: var(--danger);"></i>
+                        {% elif n.type == 'started' %}
+                            <i class="fa-solid fa-play" style="color: var(--accent);"></i>
+                        {% else %}
+                            <i class="fa-solid fa-circle-info" style="color: var(--text-muted);"></i>
+                        {% endif %}
+                    </div>
+                    <div class="notification-content">
+                        <span class="notification-title">{{ n.title }}</span>
+                        <span class="notification-message">{{ n.message }}</span>
+                    </div>
+                    <span class="notification-time">{{ n.timestamp }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fa-solid fa-bell-slash empty-icon"></i>
+                    <p>No notifications yet. Campaign activity will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-ban"></i> Suppressed / Unsubscribed</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            {% if suppressed %}
+                {% for email in suppressed %}
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius);">
+                    <span style="font-size: 14px; color: var(--text-secondary);"><i class="fa-solid fa-envelope-circle-check" style="color: var(--danger); margin-right: 8px;"></i>{{ email }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fa-solid fa-inbox empty-icon"></i>
+                    <p>No suppressed emails. Recipients can unsubscribe from email footers.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Outreach Node — A premium multi-agent cold email campaign manager with self-correcting AI quality assurance and real-time pipeline orchestration.">
+    <meta name="theme-color" content="#22c55e">
+    <title>{% block title %}Outreach Node — Custom Cold Emailer{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.2">
+</head>
+<body>
+    {% block header %}
+    <header class="app-header">
+        <div class="header-container">
+            <a href="/" class="app-logo" data-component="header-logo">
+                <span class="logo-text">Outreach<span>Node</span></span>
+            </a>
+            <nav class="app-nav" data-component="header-nav">
+                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-simple"></i> Dashboard
+                </a>
+            </nav>
+        </div>
+    </header>
+    {% endblock %}
+
+    <main class="app-main" data-component="main-layout">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}
+    <footer class="app-footer" data-component="app-footer">
+        <p>&copy; 2026 Outreach Node. Developed for UAV Lab Internship by Mughees Tayyab.</p>
+    </footer>
+    {% endblock %}
+
+    <div id="toast-container" class="toast-container" data-component="toast-container">
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=1.2"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

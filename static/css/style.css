@@ -1132,12 +1132,12 @@ tbody tr:hover { background: var(--bg-tertiary); }
 
 .step-card.completed {
     border-color: var(--success);
-    background: #F0FDF4;
+    background: var(--success-light);
 }
 
 .step-card.error {
     border-color: var(--danger);
-    background: #FEF2F2;
+    background: var(--danger-light);
 }
 
 .step-icon {

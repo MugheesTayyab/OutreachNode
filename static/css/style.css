@@ -917,6 +917,21 @@ tbody tr:hover { background: var(--bg-tertiary); }
     .form-grid { grid-template-columns: 1fr; }
 }
 
+/* ── Campaign Breakdown Card (Analytics) ── */
+.campaign-breakdown-card {
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    background: var(--bg);
+}
+
+.campaign-breakdown-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
 /* ── Campaign History ── */
 
 .campaign-history-list {

@@ -54,7 +54,7 @@
         {% if campaigns %}
         <div style="display: flex; flex-direction: column; gap: 12px;">
             {% for camp in campaigns %}
-            <div style="padding: 16px; border: 1px solid var(--border); border-radius: var(--radius);">
+            <div class="campaign-breakdown-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
                     <span style="font-weight: 600; font-size: 14px;">Campaign {{ camp.campaign_id }}</span>
                     <div style="display: flex; gap: 8px; align-items: center;">

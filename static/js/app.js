@@ -107,6 +107,37 @@ function initKeyboardNav() {
    Filters the results table based on the clicked stat card (approved, rejected, total)
    ========================================================================== */
 
+let currentFilterType = 'all';
+let currentSearchQuery = '';
+
+function applyCombinedFilters() {
+    const rows = document.querySelectorAll('.prospect-row');
+    rows.forEach(row => {
+        const status = row.getAttribute('data-status');
+        const text = row.innerText.toLowerCase();
+        
+        let matchesStatus = false;
+        if (currentFilterType === 'all') {
+            matchesStatus = true;
+        } else if (currentFilterType === 'approved') {
+            matchesStatus = (status === 'approved' || status === 'sent');
+        } else if (currentFilterType === 'rejected') {
+            matchesStatus = (status === 'rejected' || status === 'failed');
+        }
+        
+        const matchesSearch = text.includes(currentSearchQuery);
+        
+        if (matchesStatus && matchesSearch) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Trigger filterChanged event so keyboard nav updates row tabindex
+    document.dispatchEvent(new CustomEvent('filterChanged'));
+}
+
 function initInteractiveStats() {
     const cardTotal = document.getElementById('card-total');
     const cardApproved = document.getElementById('card-approved');
@@ -114,35 +145,15 @@ function initInteractiveStats() {
     if (!cardTotal || !cardApproved || !cardRejected) return;
 
     const cards = [cardTotal, cardApproved, cardRejected];
-    const rows = document.querySelectorAll('.prospect-row');
 
     function filterTable(filterType) {
         cards.forEach(c => c.classList.remove('active'));
+        if (filterType === 'all') cardTotal.classList.add('active');
+        if (filterType === 'approved') cardApproved.classList.add('active');
+        if (filterType === 'rejected') cardRejected.classList.add('active');
 
-        rows.forEach(row => {
-            const status = row.getAttribute('data-status');
-            if (filterType === 'all') {
-                row.style.display = '';
-                cardTotal.classList.add('active');
-            } else if (filterType === 'approved') {
-                if (status === 'approved' || status === 'sent') {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-                cardApproved.classList.add('active');
-            } else if (filterType === 'rejected') {
-                if (status === 'rejected' || status === 'failed') {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-                cardRejected.classList.add('active');
-            }
-        });
-
-        // Trigger filterChanged event so keyboard nav updates row tabindex
-        document.dispatchEvent(new CustomEvent('filterChanged'));
+        currentFilterType = filterType;
+        applyCombinedFilters();
     }
 
     cardTotal.addEventListener('click', () => filterTable('all'));
@@ -846,20 +857,8 @@ function initResultsFilter() {
     if (!filterInput) return;
 
     filterInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        const rows = document.querySelectorAll('.prospect-row');
-
-        rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            if (text.includes(query)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        // Notify that the filter has changed (#18)
-        document.dispatchEvent(new CustomEvent('filterChanged'));
+        currentSearchQuery = e.target.value.toLowerCase();
+        applyCombinedFilters();
     });
 }
 

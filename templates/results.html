@@ -116,6 +116,8 @@
                         <td>
                             {% if p.proofread_score >= 8 %}
                                 <span class="score-badge high">{{ p.proofread_score }}/10</span>
+                            {% elif p.proofread_score >= 5 %}
+                                <span class="score-badge medium">{{ p.proofread_score }}/10</span>
                             {% elif p.proofread_score > 0 %}
                                 <span class="score-badge low">{{ p.proofread_score }}/10</span>
                             {% else %}
@@ -126,7 +128,7 @@
                             {% if p.lead_score >= 80 %}
                                 <span class="score-badge high">{{ p.lead_score }}</span>
                             {% elif p.lead_score >= 50 %}
-                                <span class="score-badge" style="background: #FEF3C7; color: #D97706;">{{ p.lead_score }}</span>
+                                <span class="score-badge medium">{{ p.lead_score }}</span>
                             {% elif p.lead_score > 0 %}
                                 <span class="score-badge low">{{ p.lead_score }}</span>
                             {% else %}

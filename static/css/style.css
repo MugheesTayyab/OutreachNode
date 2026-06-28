@@ -2153,6 +2153,26 @@ tbody tr:hover { background: var(--bg-tertiary); }
     line-height: 1.4;
 }
 
+.score-badge.high {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.score-badge.medium {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+
+.score-badge.low {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.score-badge.none {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+}
+
 /* ── Audio Badge ── */
 .audio-badge {
     display: inline-flex;

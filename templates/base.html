@@ -135,28 +135,27 @@
                 document.documentElement.style.setProperty('--accent-hover', hovers[accent]);
                 document.documentElement.style.setProperty('--accent-light', lights[accent]);
             }
+            
+            let shouldBeDark = false;
             if (theme === 'dark') {
-                document.body.classList.add('dark-mode');
-                document.documentElement.style.setProperty('--bg', '#0F172A');
-                document.documentElement.style.setProperty('--bg-secondary', '#1E293B');
-                document.documentElement.style.setProperty('--bg-tertiary', '#334155');
-                document.documentElement.style.setProperty('--text-primary', '#F1F5F9');
-                document.documentElement.style.setProperty('--text-secondary', '#CBD5E1');
-                document.documentElement.style.setProperty('--text-muted', '#94A3B8');
-                document.documentElement.style.setProperty('--text-light', '#64748B');
-                document.documentElement.style.setProperty('--border', '#334155');
-                document.documentElement.style.setProperty('--border-hover', '#475569');
-            } else if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.body.classList.add('dark-mode');
-                document.documentElement.style.setProperty('--bg', '#0F172A');
-                document.documentElement.style.setProperty('--bg-secondary', '#1E293B');
-                document.documentElement.style.setProperty('--bg-tertiary', '#334155');
-                document.documentElement.style.setProperty('--text-primary', '#F1F5F9');
-                document.documentElement.style.setProperty('--text-secondary', '#CBD5E1');
-                document.documentElement.style.setProperty('--text-muted', '#94A3B8');
-                document.documentElement.style.setProperty('--text-light', '#64748B');
-                document.documentElement.style.setProperty('--border', '#334155');
-                document.documentElement.style.setProperty('--border-hover', '#475569');
+                shouldBeDark = true;
+            } else if (theme === 'auto') {
+                shouldBeDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+            
+            if (shouldBeDark) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            
+            // Sync theme toggle icon
+            const btn = document.getElementById('theme-toggle-btn');
+            if (btn) {
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.className = shouldBeDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+                }
             }
         });
     })();

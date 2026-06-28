@@ -84,7 +84,10 @@
                 </div>
 
                 <div class="form-group" style="grid-column: span 2; margin-top: 4px;">
-                    <label for="custom_prompt">Outreach Prompt / Email Objective</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label for="custom_prompt" style="margin-bottom: 0;">Outreach Prompt / Email Objective</label>
+                        <span id="custom_prompt_counter" style="font-size: 11px; color: var(--text-light); font-weight: 500;">0 characters</span>
+                    </div>
                     <textarea id="custom_prompt" name="custom_prompt" rows="2" placeholder="Define exactly what the email should be about" required>Pitch our UAV and AI drone-based crop monitoring solutions for green index estimation and precision agriculture.</textarea>
                 </div>
             </div>
@@ -219,5 +222,18 @@ document.getElementById('save-template-btn')?.addEventListener('click', async ()
     });
     showToast('Template saved! Refresh to see it in the dropdown.', 'success');
 });
+
+// Live character counter for custom prompt
+(function initPromptCounter() {
+    const customPrompt = document.getElementById('custom_prompt');
+    const promptCounter = document.getElementById('custom_prompt_counter');
+    if (customPrompt && promptCounter) {
+        const updateCount = () => {
+            promptCounter.innerText = `${customPrompt.value.length} characters`;
+        };
+        customPrompt.addEventListener('input', updateCount);
+        updateCount();
+    }
+})();
 </script>
 {% endblock %}

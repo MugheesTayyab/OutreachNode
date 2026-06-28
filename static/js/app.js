@@ -295,9 +295,10 @@ function initDragAndDrop() {
     });
 
     function handleFileSelect(file) {
+        if (!file) return;
         const allowedExts = ['.csv', '.xlsx', '.xls'];
         const fileExt = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
-        if (!file || !allowedExts.includes(fileExt)) {
+        if (!allowedExts.includes(fileExt)) {
             showToast('Please upload a valid CSV or Excel file.', 'error');
             return;
         }

@@ -178,32 +178,19 @@ function initStatCountUp() {
     statValues.forEach(el => {
         const rawText = el.innerText.trim();
         // Parse: "42", "9.2/10", "$0.0023", "8.5/10", "—"
-        let suffix = '';
-        let prefix = '';
-        let target = 0;
+        const match = rawText.match(/^([^\d-]*)([\d\.,]+)(.*)$/);
+        if (!match) return;
 
-        if (rawText === '—' || rawText === '') return;
+        const prefix = match[1] || '';
+        const numStr = match[2];
+        const suffix = match[3] || '';
 
-        if (rawText.includes('/10')) {
-            // Score like "9.2/10"
-            const num = parseFloat(rawText.replace('/10', ''));
-            if (isNaN(num)) return;
-            target = num;
-            suffix = '/10';
-        } else if (rawText.startsWith('$')) {
-            // Cost like "$0.0023"
-            const num = parseFloat(rawText.replace('$', ''));
-            if (isNaN(num)) return;
-            target = num;
-            prefix = '$';
-        } else {
-            const num = parseFloat(rawText.replace(/,/g, ''));
-            if (isNaN(num)) return;
-            target = num;
-        }
+        const num = parseFloat(numStr.replace(/,/g, ''));
+        if (isNaN(num)) return;
 
-        const isDecimal = target % 1 !== 0 || rawText.includes('.');
-        const decimals = isDecimal ? (rawText.split('.')[1] ? rawText.split('.')[1].replace('/10', '').replace('$', '').length : 1) : 0;
+        const target = num;
+        const isDecimal = numStr.includes('.');
+        const decimals = isDecimal ? numStr.split('.')[1].length : 0;
 
         el.innerText = prefix + '0' + suffix;
 

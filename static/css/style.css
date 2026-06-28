@@ -1083,7 +1083,7 @@ tbody tr:hover { background: var(--bg-tertiary); }
 .agent-stepper-container::before {
     content: '';
     position: absolute;
-    top: 50%;
+    top: 52px;
     left: calc(var(--space-lg) + 20px);
     right: calc(var(--space-lg) + 20px);
     height: 2px;
@@ -1096,7 +1096,6 @@ tbody tr:hover { background: var(--bg-tertiary); }
     );
     z-index: 0;
     pointer-events: none;
-    transform: translateY(-50%);
 }
 
 @media (max-width: 1100px) {

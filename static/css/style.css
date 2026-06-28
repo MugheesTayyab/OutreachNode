@@ -1431,9 +1431,10 @@ tbody tr:hover { background: var(--bg-tertiary); }
 .results-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: var(--space-xl);
-    gap: 16px;
+    gap: 24px;
+    flex-wrap: wrap;
 }
 
 @media (max-width: 768px) {
@@ -1964,15 +1965,6 @@ tbody tr:hover { background: var(--bg-tertiary); }
    RESULTS PAGE
    ========================================================================== */
 
-.results-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 24px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-}
-
 .results-header .header-details h1 {
     font-size: 24px;
     font-weight: 700;
@@ -1983,13 +1975,6 @@ tbody tr:hover { background: var(--bg-tertiary); }
 .results-header .header-details .tagline {
     font-size: 14px;
     color: var(--text-muted);
-}
-
-.results-header .header-actions {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-    align-items: center;
 }
 
 .results-table-card {

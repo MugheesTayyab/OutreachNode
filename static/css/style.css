@@ -1495,7 +1495,7 @@ tbody tr:hover { background: var(--bg-tertiary); }
 .stat-card.interactive.active {
     border-color: var(--accent);
     background: var(--accent-light);
-    box-shadow: 0 0 0 2px var(--accent-light);
+    box-shadow: 0 0 0 2px var(--accent);
 }
 
 .stat-value {

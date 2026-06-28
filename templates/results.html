@@ -67,7 +67,7 @@
     </div>
     <div class="stat-card">
         <span class="stat-value" style="color: var(--success); font-size: 16px;">
-            {% set scores = campaign.prospects | map(attribute='lead_score') | selectattr('>', 0) | list %}
+            {% set scores = campaign.prospects | map(attribute='lead_score') | select('greaterthan', 0) | list %}
             {% if scores %}{{ (scores | sum / scores | length) | round(0) }}{% else %}—{% endif %}
         </span>
         <span class="stat-label">Avg Lead Score</span>

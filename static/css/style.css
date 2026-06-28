@@ -2101,8 +2101,12 @@ tbody tr:hover { background: var(--bg-tertiary); }
     vertical-align: middle;
 }
 
-.results-table tbody tr:hover {
+.results-table tbody tr:nth-child(even) {
     background: var(--bg-secondary);
+}
+
+.results-table tbody tr:hover {
+    background: var(--bg-tertiary);
 }
 
 .prospect-name-cell {

@@ -151,7 +151,11 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button class="btn btn-secondary btn-sm" onclick='openPreviewModal("{{ campaign.campaign_id }}", {{ p | tojson }})' title="Review, customize, or send email draft">
+                            <button class="btn btn-secondary btn-sm" 
+                                    data-campaign-id="{{ campaign.campaign_id }}" 
+                                    data-prospect="{{ p | tojson | forceescape }}"
+                                    onclick="openPreviewModal(this)" 
+                                    title="Review, customize, or send email draft">
                                 <i class="fa-solid fa-envelope-open-text"></i> Review &amp; Send
                             </button>
                         </td>

@@ -867,9 +867,15 @@ function initResultsFilter() {
    RESULTS: EMAIL CUSTOMIZER PREVIEW MODAL
    ========================================================================== */
 
-function openPreviewModal(campaignId, prospect) {
-    currentProspectData = prospect;
-    currentCampaignId = campaignId;
+function openPreviewModal(campaignIdOrElement, prospect) {
+    if (campaignIdOrElement instanceof HTMLElement) {
+        currentCampaignId = campaignIdOrElement.getAttribute('data-campaign-id');
+        currentProspectData = JSON.parse(campaignIdOrElement.getAttribute('data-prospect'));
+    } else {
+        currentCampaignId = campaignIdOrElement;
+        currentProspectData = prospect;
+    }
+    const prospect = currentProspectData;
 
     const modal = document.getElementById('preview-modal');
     

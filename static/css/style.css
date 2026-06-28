@@ -1045,6 +1045,12 @@ tbody tr:hover { background: var(--bg-tertiary); }
     margin-bottom: var(--space-md);
     color: var(--accent);
     opacity: 0.3;
+    animation: float-anim 3s ease-in-out infinite;
+}
+
+@keyframes float-anim {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
 }
 
 /* ── Prompt Doc Zone ── */

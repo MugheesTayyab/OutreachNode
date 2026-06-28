@@ -1659,6 +1659,7 @@ tbody tr:hover { background: var(--bg-tertiary); }
     width: 92%;
     max-width: 880px;
     max-height: 88vh;
+    margin: auto;
     overflow-y: auto;
     background: var(--bg);
     border: 1px solid var(--border);

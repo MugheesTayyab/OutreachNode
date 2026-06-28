@@ -628,7 +628,7 @@ function initPipelinePolling(campaignId) {
             });
 
             // Update Stepper Cards
-            updateStepperCards(activeStage);
+            updateStepperCards(activeStage, state);
             
             // Update Duration Timeline Visualizer
             if (activeProspect) {
@@ -782,14 +782,30 @@ function initPipelinePolling(campaignId) {
         activeTimelineTimer.stage = activeStage;
     }
 
-    function updateStepperCards(activeStage) {
+    function updateStepperCards(activeStage, state) {
         // Reset steps
         document.querySelectorAll('.step-card').forEach(card => {
             card.classList.remove('active', 'completed');
-            card.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-clock"></i> Pending';
+            card.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-clock"></i> Pending (0%)';
         });
 
-        if (!activeStage) return;
+        if (!activeStage || !state || !state.prospects) return;
+
+        const total = state.prospects.length;
+        if (total === 0) return;
+
+        // Calculate progress for each stage based on prospects who have finished it or are past it
+        const finishedProspecting = state.prospects.filter(p => !['pending', 'prospecting'].includes(p.stage) || ['completed', 'approved', 'rejected', 'sent'].includes(p.status)).length;
+        const finishedLinkedin = state.prospects.filter(p => !['pending', 'prospecting', 'linkedin'].includes(p.stage) || ['completed', 'approved', 'rejected', 'sent'].includes(p.status)).length;
+        const finishedContext = state.prospects.filter(p => !['pending', 'prospecting', 'linkedin', 'context'].includes(p.stage) || ['completed', 'approved', 'rejected', 'sent'].includes(p.status)).length;
+        const finishedCopywriting = state.prospects.filter(p => !['pending', 'prospecting', 'linkedin', 'context', 'copywriting'].includes(p.stage) || ['completed', 'approved', 'rejected', 'sent'].includes(p.status)).length;
+        const finishedProofreading = state.prospects.filter(p => ['completed', 'approved', 'rejected', 'sent'].includes(p.status)).length;
+
+        const pctProspecting = Math.min(100, Math.round((finishedProspecting / total) * 100));
+        const pctLinkedin = Math.min(100, Math.round((finishedLinkedin / total) * 100));
+        const pctContext = Math.min(100, Math.round((finishedContext / total) * 100));
+        const pctCopywriting = Math.min(100, Math.round((finishedCopywriting / total) * 100));
+        const pctProofreading = Math.min(100, Math.round((finishedProofreading / total) * 100));
 
         const stepOrchestrator = document.getElementById('step-orchestrator');
         const stepProspecting = document.getElementById('step-prospecting');
@@ -801,39 +817,66 @@ function initPipelinePolling(campaignId) {
         function markCompleted(el) {
             if (el) {
                 el.classList.add('completed');
-                el.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
+                el.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed (100%)';
             }
         }
-        function markActive(el) {
+        function markActive(el, pct) {
             if (el) {
                 el.classList.add('active');
-                el.querySelector('.step-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Active';
+                el.querySelector('.step-status').innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Active (${pct}%)`;
+            }
+        }
+        function markPending(el, pct) {
+            if (el) {
+                el.querySelector('.step-status').innerHTML = `<i class="fa-solid fa-clock"></i> Pending (${pct}%)`;
             }
         }
 
-        // Orchestrator is always completed by the time per-prospect stages start
         markCompleted(stepOrchestrator);
 
+        // Update Prospecting step
         if (activeStage === 'prospecting') {
-            markActive(stepProspecting);
-        } else if (activeStage === 'linkedin') {
+            markActive(stepProspecting, pctProspecting);
+        } else if (pctProspecting === 100) {
             markCompleted(stepProspecting);
-            markActive(stepLinkedin);
-        } else if (activeStage === 'context') {
-            markCompleted(stepProspecting);
+        } else {
+            markPending(stepProspecting, pctProspecting);
+        }
+
+        // Update LinkedIn step
+        if (activeStage === 'linkedin') {
+            markActive(stepLinkedin, pctLinkedin);
+        } else if (pctLinkedin === 100) {
             markCompleted(stepLinkedin);
-            markActive(stepContext);
-        } else if (activeStage === 'copywriting') {
-            markCompleted(stepProspecting);
-            markCompleted(stepLinkedin);
+        } else {
+            markPending(stepLinkedin, pctLinkedin);
+        }
+
+        // Update Context step
+        if (activeStage === 'context') {
+            markActive(stepContext, pctContext);
+        } else if (pctContext === 100) {
             markCompleted(stepContext);
-            markActive(stepCopywriter);
-        } else if (activeStage.startsWith('proofreading') || activeStage === 'generating_audio') {
-            markCompleted(stepProspecting);
-            markCompleted(stepLinkedin);
-            markCompleted(stepContext);
+        } else {
+            markPending(stepContext, pctContext);
+        }
+
+        // Update Copywriter step
+        if (activeStage === 'copywriting') {
+            markActive(stepCopywriter, pctCopywriting);
+        } else if (pctCopywriting === 100) {
             markCompleted(stepCopywriter);
-            markActive(stepProofreader);
+        } else {
+            markPending(stepCopywriter, pctCopywriting);
+        }
+
+        // Update Proofreader step
+        if (activeStage.startsWith('proofreading') || activeStage === 'generating_audio') {
+            markActive(stepProofreader, pctProofreading);
+        } else if (pctProofreading === 100) {
+            markCompleted(stepProofreader);
+        } else {
+            markPending(stepProofreader, pctProofreading);
         }
     }
 }

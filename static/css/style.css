@@ -918,6 +918,19 @@ tbody tr:hover { background: var(--bg-tertiary); }
     }
 }
 
+.notifications-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 768px) {
+    .notifications-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;

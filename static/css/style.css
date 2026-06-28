@@ -906,6 +906,18 @@ tbody tr:hover { background: var(--bg-tertiary); }
     .dashboard-grid { grid-template-columns: 1fr; }
 }
 
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 900px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;

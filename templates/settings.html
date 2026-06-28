@@ -16,7 +16,10 @@
         <form class="settings-form" data-section="api">
             <div class="form-group">
                 <label for="api_key">LLM API Key</label>
-                <input type="password" id="api_key" name="api_key" placeholder="Enter your API key" value="">
+                <div class="password-wrapper" style="position: relative; display: flex; align-items: center;">
+                    <input type="password" id="api_key" name="api_key" placeholder="Enter your API key" value="" style="padding-right: 40px; width: 100%;">
+                    <button type="button" class="password-toggle-btn" aria-label="Toggle visibility" style="position: absolute; right: 10px; background: none; border: none; color: var(--text-light); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-eye"></i></button>
+                </div>
                 <p style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Used for Claude Opus via unlimited.surf</p>
             </div>
             <div class="form-group">
@@ -52,7 +55,10 @@
             </div>
             <div class="form-group">
                 <label for="smtp_pass">SMTP Password</label>
-                <input type="password" id="smtp_pass" name="smtp_pass" placeholder="App password or SMTP key">
+                <div class="password-wrapper" style="position: relative; display: flex; align-items: center;">
+                    <input type="password" id="smtp_pass" name="smtp_pass" placeholder="App password or SMTP key" style="padding-right: 40px; width: 100%;">
+                    <button type="button" class="password-toggle-btn" aria-label="Toggle visibility" style="position: absolute; right: 10px; background: none; border: none; color: var(--text-light); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-eye"></i></button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="smtp_from_name">From Name</label>
@@ -247,5 +253,20 @@ document.getElementById('export-all-btn')?.addEventListener('click', async () =>
         });
     } catch {}
 })();
+
+// Password visibility toggler
+document.querySelectorAll('.password-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const input = btn.previousElementSibling;
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fa-solid fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'fa-solid fa-eye';
+        }
+    });
+});
 </script>
 {% endblock %}

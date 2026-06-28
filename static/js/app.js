@@ -543,7 +543,7 @@ function initPromptDocUpload() {
    PIPELINE: REAL-TIME ORCHESTRATION POLLING
    ========================================================================== */
 
-let activeTimelineTimer = null;
+let activeTimelineTimer = { id: null, stage: null };
 let activeStageStartTime = 0;
 
 function initPipelinePolling(campaignId) {
@@ -652,9 +652,10 @@ function initPipelinePolling(campaignId) {
                 setupLiveTimelineTicker(currentSubstage, timeline);
             } else {
                 timelineCard.classList.add('hidden');
-                if (activeTimelineTimer) {
-                    clearInterval(activeTimelineTimer);
-                    activeTimelineTimer = null;
+                if (activeTimelineTimer.id) {
+                    clearInterval(activeTimelineTimer.id);
+                    activeTimelineTimer.id = null;
+                    activeTimelineTimer.stage = null;
                 }
             }
 
@@ -679,9 +680,10 @@ function initPipelinePolling(campaignId) {
             // Handle Completion
             if (state.status === 'completed') {
                 clearInterval(pollInterval);
-                if (activeTimelineTimer) {
-                    clearInterval(activeTimelineTimer);
-                    activeTimelineTimer = null;
+                if (activeTimelineTimer.id) {
+                    clearInterval(activeTimelineTimer.id);
+                    activeTimelineTimer.id = null;
+                    activeTimelineTimer.stage = null;
                 }
                 globalStatusText.innerText = 'Completed';
                 const spinnerEl = document.querySelector('.pipeline-loader .spinner');
@@ -691,9 +693,10 @@ function initPipelinePolling(campaignId) {
                 showToast('Campaign successfully completed!', 'success');
             } else if (state.status === 'failed') {
                 clearInterval(pollInterval);
-                if (activeTimelineTimer) {
-                    clearInterval(activeTimelineTimer);
-                    activeTimelineTimer = null;
+                if (activeTimelineTimer.id) {
+                    clearInterval(activeTimelineTimer.id);
+                    activeTimelineTimer.id = null;
+                    activeTimelineTimer.stage = null;
                 }
                 globalStatusText.innerText = 'Failed';
                 const spinnerFail = document.querySelector('.pipeline-loader .spinner');
@@ -753,12 +756,12 @@ function initPipelinePolling(campaignId) {
         if (!activeBar || !activeText) return;
         
         // Check if we need to start or restart the ticker
-        if (activeTimelineTimer && activeTimelineTimer.stage === activeStage) {
+        if (activeTimelineTimer.id && activeTimelineTimer.stage === activeStage) {
             return; // Already running for this stage
         }
         
-        if (activeTimelineTimer) {
-            clearInterval(activeTimelineTimer);
+        if (activeTimelineTimer.id) {
+            clearInterval(activeTimelineTimer.id);
         }
         
         // Start counter
@@ -767,7 +770,7 @@ function initPipelinePolling(campaignId) {
         
         activeBar.style.background = 'var(--accent-purple)';
         
-        const timer = setInterval(() => {
+        const timerId = setInterval(() => {
             elapsed += 0.1;
             activeText.innerText = `${elapsed.toFixed(1)}s`;
             // Grow bar up to 90% dynamically while waiting
@@ -775,8 +778,8 @@ function initPipelinePolling(campaignId) {
             activeBar.style.width = `${widthPct}%`;
         }, 100);
         
-        timer.stage = activeStage;
-        activeTimelineTimer = timer;
+        activeTimelineTimer.id = timerId;
+        activeTimelineTimer.stage = activeStage;
     }
 
     function updateStepperCards(activeStage) {

@@ -35,9 +35,11 @@ class StateManager:
 
     @classmethod
     def init_campaign(cls, campaign_id: str, prospects: list[dict], settings: dict) -> dict:
+        import datetime
         state = {
             "campaign_id": campaign_id,
             "status": "pending",
+            "created_at": datetime.datetime.now().isoformat(),
             "settings": settings,
             "research_plan": {},
             "orchestrator_duration": 0,
@@ -115,7 +117,8 @@ class StateManager:
                         "tags": state.get("tags", ""),
                         "total_tokens": state.get("total_tokens", 0),
                         "total_cost": state.get("total_cost", 0.0),
-                        "settings": state.get("settings", {})
+                        "settings": state.get("settings", {}),
+                        "created_at": state.get("created_at")
                     })
         return campaigns
 

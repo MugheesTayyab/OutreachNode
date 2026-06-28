@@ -18,12 +18,13 @@
         {% if campaigns %}
             {% for camp in campaigns %}
                 <div class="history-item" data-campaign-id="{{ camp.campaign_id }}" data-tags="{{ camp.tags }}" data-status="{{ camp.status }}">
-                    <div class="history-item-header">
+                    <div class="history-item-header" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;">
                         <span class="campaign-badge">ID: {{ camp.campaign_id }}</span>
                         {% if camp.tags %}
                         <span style="font-size: 12px; color: var(--accent);"><i class="fa-solid fa-tag"></i> {{ camp.tags }}</span>
                         {% endif %}
                         <span class="status-badge {{ camp.status }}">{{ camp.status.upper() }}</span>
+                        <span class="campaign-time" data-timestamp="{{ camp.created_at or '' }}" style="font-size: 12px; color: var(--text-light); margin-left: auto;">Recently</span>
                     </div>
                     <div class="history-item-body">
                         <p><strong>Total Prospects:</strong> {{ camp.total_prospects }} | <strong>Completed:</strong> {{ camp.completed_prospects }}</p>
@@ -83,6 +84,35 @@ document.getElementById('history-filter')?.addEventListener('input', function() 
     document.querySelectorAll('.history-item').forEach(el => {
         const text = el.innerText.toLowerCase();
         el.style.display = text.includes(q) ? '' : 'none';
+    });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    function formatRelativeTime(isoString) {
+        if (!isoString) return 'Recently';
+        try {
+            const date = new Date(isoString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays < 7) return `${diffDays}d ago`;
+            
+            return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        } catch (e) {
+            return 'Recently';
+        }
+    }
+
+    document.querySelectorAll('.campaign-time').forEach(el => {
+        const ts = el.getAttribute('data-timestamp');
+        el.innerText = formatRelativeTime(ts);
     });
 });
 

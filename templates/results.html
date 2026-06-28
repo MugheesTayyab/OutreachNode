@@ -100,7 +100,7 @@
             </thead>
             <tbody>
                 {% for p in campaign.prospects %}
-                    <tr class="prospect-row" data-status="{{ p.status }}">
+                    <tr class="prospect-row" data-status="{{ p.status }}" data-id="{{ p.id }}">
                         <td>
                             <div class="prospect-name-cell">
                                 <span class="p-name">{{ p.name }}</span>

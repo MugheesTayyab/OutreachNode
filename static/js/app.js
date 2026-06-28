@@ -998,10 +998,33 @@ function handleSendEmail() {
         sendStatus.className = 'send-status-text success';
         showToast('Cold email successfully sent!', 'success');
         
-        // Update table row class on background if results list is present
+        // Update table row dynamically
         setTimeout(() => {
-            window.location.reload(); // Reload to reflect status changes in the table
-        }, 1500);
+            const row = document.querySelector(`.prospect-row[data-id="${currentProspectData.id}"]`);
+            if (row) {
+                row.setAttribute('data-status', 'sent');
+                
+                // Update status badge
+                const statusBadge = row.querySelector('.status-badge');
+                if (statusBadge) {
+                    statusBadge.className = 'status-badge sent';
+                    statusBadge.innerText = 'Sent';
+                }
+                
+                // Re-apply filters
+                if (typeof applyCombinedFilters === 'function') {
+                    applyCombinedFilters();
+                }
+                
+                // Update interactive counters
+                const statApproved = document.getElementById('stat-approved');
+                if (statApproved) {
+                    const approvedCount = document.querySelectorAll('.prospect-row[data-status="approved"], .prospect-row[data-status="sent"]').length;
+                    statApproved.innerText = approvedCount;
+                }
+            }
+            closePreviewModal();
+        }, 1200);
     })
     .catch(err => {
         console.error(err);

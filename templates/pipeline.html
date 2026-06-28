@@ -3,15 +3,20 @@
 {% block title %}Orchestration Pipeline — Outreach Node Custom Cold Emailer{% endblock %}
 
 {% block content %}
-<section class="pipeline-header">
+<section class="pipeline-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
     <div class="header-details">
         <span class="campaign-tag">CAMPAIGN ID: <span id="campaign-id-display">{{ campaign_id }}</span></span>
         <h1>Multi-Agent Orchestration Layer</h1>
         <p class="tagline">Real-time agent collaboration with self-correcting critique loop visualization.</p>
     </div>
-    <div class="pipeline-loader">
-        <div class="spinner" role="status" aria-label="Campaign in progress"></div>
-        <span id="campaign-global-status">Orchestrator running...</span>
+    <div class="header-actions" style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+        <div class="pipeline-loader">
+            <div class="spinner" role="status" aria-label="Campaign in progress"></div>
+            <span id="campaign-global-status">Orchestrator running...</span>
+        </div>
+        <a href="/campaign-history" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; text-decoration: none;">
+            <i class="fa-solid fa-arrow-left"></i> Back to History
+        </a>
     </div>
 </section>
 

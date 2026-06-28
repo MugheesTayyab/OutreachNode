@@ -939,6 +939,27 @@ tbody tr:hover { background: var(--bg-tertiary); }
     overflow-y: auto;
 }
 
+#history-filter {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: var(--font);
+    width: 260px;
+    background: var(--bg);
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+#history-filter:hover {
+    border-color: var(--border-hover);
+}
+
+#history-filter:focus {
+    border-color: var(--accent);
+}
+
 .history-item {
     padding: var(--space-md);
     margin-bottom: 8px;

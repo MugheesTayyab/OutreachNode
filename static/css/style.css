@@ -1520,6 +1520,7 @@ tbody tr:hover { background: var(--bg-tertiary); }
     position: relative;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    background: var(--bg);
 }
 
 .scroll-fade-wrapper::after {

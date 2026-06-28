@@ -1712,7 +1712,11 @@ tbody tr:hover { background: var(--bg-tertiary); }
 }
 
 @media (max-width: 768px) {
-    .modal-body-grid { grid-template-columns: 1fr; max-height: none; }
+    .modal-body-grid { 
+        grid-template-columns: 1fr; 
+        max-height: 50vh; 
+        overflow-y: auto;
+    }
 }
 
 .modal-editor-pane {
@@ -1725,7 +1729,14 @@ tbody tr:hover { background: var(--bg-tertiary); }
 }
 
 @media (max-width: 768px) {
-    .modal-editor-pane { border-right: none; border-bottom: 1px solid var(--border); }
+    .modal-editor-pane { 
+        border-right: none; 
+        border-bottom: 1px solid var(--border); 
+        overflow-y: visible;
+    }
+    .modal-intel-pane {
+        overflow-y: visible;
+    }
 }
 
 .editor-field { display: flex; flex-direction: column; gap: 4px; }

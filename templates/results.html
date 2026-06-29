@@ -192,6 +192,13 @@
         </div>
         <div class="modal-body-grid">
             <div class="modal-editor-pane">
+                <div class="editor-tabs">
+                    <button class="tab-btn active" id="tab-btn-main" onclick="switchEditorTab('main')">Main Email</button>
+                    <button class="tab-btn hidden" id="tab-btn-follow1" onclick="switchEditorTab('follow1')">Follow-up 1</button>
+                    <button class="tab-btn hidden" id="tab-btn-follow2" onclick="switchEditorTab('follow2')">Follow-up 2</button>
+                    <button class="tab-btn hidden" id="tab-btn-follow3" onclick="switchEditorTab('follow3')">Follow-up 3</button>
+                </div>
+
                 <div class="editor-field">
                     <label for="modal-email-to">To:</label>
                     <input type="text" id="modal-email-to" readonly>
@@ -221,6 +228,30 @@
                 </div>
 
                 <div class="intel-section">
+                    <h4><i class="fa-solid fa-gauge-high"></i> Deliverability Audit</h4>
+                    <p class="section-desc">Audit score based on spam words, subject length, and domain settings.</p>
+                    <div class="deliverability-card">
+                        <div class="deliverability-header">
+                            <span class="deliverability-title">Risk Analysis</span>
+                            <span class="deliverability-score-badge" id="deliverability-score-badge">Checking...</span>
+                        </div>
+                        <ul class="deliverability-issues-list" id="deliverability-issues-list">
+                            <!-- Populated dynamically -->
+                        </ul>
+                        <div class="dns-checks-container">
+                            <div class="dns-check-row">
+                                <span class="dns-check-label">SPF Check:</span>
+                                <span class="dns-check-status" id="dns-check-spf">—</span>
+                            </div>
+                            <div class="dns-check-row">
+                                <span class="dns-check-label">DMARC Check:</span>
+                                <span class="dns-check-status" id="dns-check-dmarc">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="intel-section">
                     <h4><i class="fa-solid fa-volume-high"></i> Voicemail Generator</h4>
                     <p class="section-desc">Generate a short voice draft of the email to deliver via phone/voicemail.</p>
                     <div class="audio-controls-container">
@@ -246,6 +277,9 @@
             <span class="send-status-text" id="modal-send-status"></span>
             <div class="modal-footer-btns">
                 <button class="btn btn-secondary" onclick="closePreviewModal()">Close</button>
+                <button class="btn btn-secondary" id="modal-save-draft-btn" style="border-color: var(--accent); color: var(--accent);">
+                    <i class="fa-solid fa-save"></i> Save Draft
+                </button>
                 <button class="btn btn-primary" id="modal-send-btn">
                     <i class="fa-solid fa-paper-plane"></i> Send Email
                 </button>

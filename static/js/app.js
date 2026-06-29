@@ -407,7 +407,11 @@ function initCampaignForm() {
             prompt_doc_content: document.getElementById('prompt-doc-content')?.value || '',
             prompt_doc_filename: document.getElementById('prompt-doc-filename-hidden')?.value || '',
             tags: document.getElementById('tags')?.value || '',
-            ab_test: document.getElementById('ab_test')?.checked || false
+            ab_test: document.getElementById('ab_test')?.checked || false,
+            generate_followups: document.getElementById('generate_followups')?.checked || false,
+            followup_delay_1: parseInt(document.getElementById('followup_delay_1')?.value || 3),
+            followup_delay_2: parseInt(document.getElementById('followup_delay_2')?.value || 7),
+            followup_delay_3: parseInt(document.getElementById('followup_delay_3')?.value || 14)
         };
 
         showToast('Initializing multi-agent pipeline...', 'info');
@@ -900,6 +904,8 @@ function initResultsFilter() {
    RESULTS: EMAIL CUSTOMIZER PREVIEW MODAL
    ========================================================================== */
 
+let activeEditorTab = 'main';
+
 function openPreviewModal(campaignIdOrElement, prospect) {
     if (campaignIdOrElement instanceof HTMLElement) {
         currentCampaignId = campaignIdOrElement.getAttribute('data-campaign-id');
@@ -908,23 +914,44 @@ function openPreviewModal(campaignIdOrElement, prospect) {
         currentCampaignId = campaignIdOrElement;
         currentProspectData = prospect;
     }
-    const prospect = currentProspectData;
+    const p_data = currentProspectData;
 
     const modal = document.getElementById('preview-modal');
     
     // Fill fields
-    document.getElementById('modal-email-to').value = prospect.email;
-    document.getElementById('modal-email-subject').value = prospect.email_subject || `Outreach to ${prospect.company}`;
-    document.getElementById('modal-email-body').value = prospect.email_body || '';
+    document.getElementById('modal-email-to').value = p_data.email;
+    
+    // Reset active tab and fill main content
+    activeEditorTab = 'main';
+    
+    // Toggle active classes on tab buttons
+    document.querySelectorAll('.editor-tabs .tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.id === 'tab-btn-main');
+    });
+
+    document.getElementById('modal-email-subject').value = p_data.email_subject || `Outreach to ${p_data.company}`;
+    document.getElementById('modal-email-body').value = p_data.email_body || '';
+
+    // Show/hide follow-up tab buttons depending on if they are configured
+    const followUps = p_data.follow_ups || [];
+    if (followUps.length > 0) {
+        document.getElementById('tab-btn-follow1').classList.remove('hidden');
+        document.getElementById('tab-btn-follow2').classList.remove('hidden');
+        document.getElementById('tab-btn-follow3').classList.remove('hidden');
+    } else {
+        document.getElementById('tab-btn-follow1').classList.add('hidden');
+        document.getElementById('tab-btn-follow2').classList.add('hidden');
+        document.getElementById('tab-btn-follow3').classList.add('hidden');
+    }
     
     // Editor score / critique details
-    document.getElementById('modal-rating-score').innerText = prospect.proofread_score ? `${prospect.proofread_score}/10` : '—';
-    document.getElementById('modal-critique-box').innerText = prospect.proofread_critique || 'No critical review generated.';
+    document.getElementById('modal-rating-score').innerText = p_data.proofread_score ? `${p_data.proofread_score}/10` : '—';
+    document.getElementById('modal-critique-box').innerText = p_data.proofread_critique || 'No critical review generated.';
     
     // Fill Personalization Hooks List
     const hooksContainer = document.getElementById('modal-hooks-list');
     hooksContainer.innerHTML = '';
-    const hooks = prospect.prospect_data?.key_interests || ["Job Title / Company News Match"];
+    const hooks = p_data.prospect_data?.key_interests || ["Job Title / Company News Match"];
     hooks.forEach(h => {
         const li = document.createElement('li');
         li.innerText = h;
@@ -941,8 +968,8 @@ function openPreviewModal(campaignIdOrElement, prospect) {
     const audioPlayer = document.getElementById('modal-audio-player');
     const genAudioBtn = document.getElementById('modal-gen-audio-btn');
 
-    if (prospect.audio_path) {
-        audioPlayer.src = prospect.audio_path;
+    if (p_data.audio_path) {
+        audioPlayer.src = p_data.audio_path;
         audioWrapper.classList.remove('hidden');
         genAudioBtn.classList.add('hidden');
     } else {
@@ -956,10 +983,178 @@ function openPreviewModal(campaignIdOrElement, prospect) {
     sendBtn.disabled = false;
     sendBtn.onclick = handleSendEmail;
 
+    const saveDraftBtn = document.getElementById('modal-save-draft-btn');
+    if (saveDraftBtn) {
+        saveDraftBtn.onclick = handleSaveDraft;
+    }
+
     genAudioBtn.onclick = handleGenerateAudio;
+
+    // Run first deliverability audit on modal open
+    runDeliverabilityCheck();
+
+    // Attach input listeners
+    document.getElementById('modal-email-subject').oninput = () => {
+        cacheActiveTabData();
+        runDeliverabilityCheck();
+    };
+    document.getElementById('modal-email-body').oninput = () => {
+        cacheActiveTabData();
+        runDeliverabilityCheck();
+    };
 
     // Open modal
     modal.classList.remove('hidden');
+}
+
+function cacheActiveTabData() {
+    if (!currentProspectData) return;
+    const subjectVal = document.getElementById('modal-email-subject').value;
+    const bodyVal = document.getElementById('modal-email-body').value;
+
+    if (activeEditorTab === 'main') {
+        currentProspectData.email_subject = subjectVal;
+        currentProspectData.email_body = bodyVal;
+    } else {
+        const stepNum = parseInt(activeEditorTab.replace('follow', ''));
+        if (!currentProspectData.follow_ups) currentProspectData.follow_ups = [];
+        let fup = currentProspectData.follow_ups.find(f => f.step === stepNum);
+        if (!fup) {
+            fup = { step: stepNum, delay_days: stepNum === 1 ? 3 : (stepNum === 2 ? 7 : 14), subject: '', body: '' };
+            currentProspectData.follow_ups.push(fup);
+        }
+        fup.subject = subjectVal;
+        fup.body = bodyVal;
+    }
+}
+
+function switchEditorTab(tabId) {
+    if (!currentProspectData) return;
+    // Cache current tab before switching
+    cacheActiveTabData();
+
+    activeEditorTab = tabId;
+
+    // Toggle active classes on tab buttons
+    document.querySelectorAll('.editor-tabs .tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.id === `tab-btn-${tabId}`);
+    });
+
+    const subjInput = document.getElementById('modal-email-subject');
+    const bodyInput = document.getElementById('modal-email-body');
+
+    if (tabId === 'main') {
+        subjInput.value = currentProspectData.email_subject || '';
+        bodyInput.value = currentProspectData.email_body || '';
+    } else {
+        const stepNum = parseInt(tabId.replace('follow', ''));
+        const fup = (currentProspectData.follow_ups || []).find(f => f.step === stepNum) || { subject: '', body: '' };
+        subjInput.value = fup.subject || '';
+        bodyInput.value = fup.body || '';
+    }
+
+    runDeliverabilityCheck();
+}
+
+function runDeliverabilityCheck() {
+    const subject = document.getElementById('modal-email-subject').value;
+    const body = document.getElementById('modal-email-body').value;
+    const scoreBadge = document.getElementById('deliverability-score-badge');
+    const issuesList = document.getElementById('deliverability-issues-list');
+    const spfCheck = document.getElementById('dns-check-spf');
+    const dmarcCheck = document.getElementById('dns-check-dmarc');
+
+    if (!scoreBadge || !issuesList) return;
+
+    fetch('/api/deliverability-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            subject: subject,
+            body: body,
+            sender_email: '' // Loaded from settings on backend
+        })
+    })
+    .then(res => res.json())
+    .then(report => {
+        // Update Score Badge
+        scoreBadge.innerText = `${report.status.toUpperCase()} (${report.score}%)`;
+        scoreBadge.className = `deliverability-score-badge ${report.status}`;
+
+        // Update Issues List
+        issuesList.innerHTML = '';
+        if (report.issues && report.issues.length > 0) {
+            report.issues.forEach(issue => {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--warning); margin-right:4px;"></i> ${issue}`;
+                issuesList.appendChild(li);
+            });
+        } else {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--success); margin-right:4px;"></i> No spam triggers detected. Excellent deliverability!`;
+            issuesList.appendChild(li);
+        }
+
+        // Update Domain Checks
+        if (spfCheck && dmarcCheck) {
+            const domainInfo = report.domain_checks;
+            
+            spfCheck.innerText = domainInfo.spf_present ? 'VALID' : 'MISSING';
+            spfCheck.className = `dns-check-status ${domainInfo.spf_present ? 'valid' : 'invalid'}`;
+
+            dmarcCheck.innerText = domainInfo.dmarc_present ? 'VALID' : 'MISSING';
+            dmarcCheck.className = `dns-check-status ${domainInfo.dmarc_present ? 'valid' : 'invalid'}`;
+        }
+    })
+    .catch(err => {
+        console.error('Deliverability audit failed:', err);
+    });
+}
+
+function handleSaveDraft() {
+    if (!currentProspectData) return;
+    
+    // Make sure latest content is cached
+    cacheActiveTabData();
+
+    const saveBtn = document.getElementById('modal-save-draft-btn');
+    const originalHtml = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+    fetch('/api/save-prospect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            campaign_id: currentCampaignId,
+            prospect_id: currentProspectData.id,
+            subject: currentProspectData.email_subject,
+            body: currentProspectData.email_body,
+            follow_ups: currentProspectData.follow_ups
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalHtml;
+        if (data.error) {
+            showToast(`Save failed: ${data.error}`, 'error');
+            return;
+        }
+        showToast('Draft successfully saved!', 'success');
+        
+        // Update data-prospect on table row dynamically so reopening keeps it
+        const row = document.querySelector(`.prospect-row[data-id="${currentProspectData.id}"]`);
+        if (row) {
+            row.setAttribute('data-prospect', JSON.stringify(currentProspectData));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalHtml;
+        showToast('Network error saving draft.', 'error');
+    });
 }
 
 function closePreviewModal() {

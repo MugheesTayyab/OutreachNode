@@ -75,6 +75,7 @@ class StateManager:
                 "audio_path": "",
                 "status": "pending",
                 "lead_score": 0,
+                "follow_ups": [],
                 "tags": ""
             })
 

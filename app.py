@@ -219,7 +219,11 @@ def api_start():
         "prompt_doc_content": data.get("prompt_doc_content", ""),
         "prompt_doc_filename": data.get("prompt_doc_filename", ""),
         "tags": data.get("tags", ""),
-        "ab_test": data.get("ab_test", False)
+        "ab_test": data.get("ab_test", False),
+        "generate_followups": data.get("generate_followups", False),
+        "followup_delay_1": data.get("followup_delay_1", 3),
+        "followup_delay_2": data.get("followup_delay_2", 7),
+        "followup_delay_3": data.get("followup_delay_3", 14)
     }
 
     StateManager.init_campaign(campaign_id, prospects, settings)
@@ -416,6 +420,44 @@ def api_save_settings():
     current.update(data)
     StateManager.save_settings(current)
     return jsonify({"success": True})
+
+@app.route('/api/save-prospect', methods=['POST'])
+def api_save_prospect():
+    data = request.json or {}
+    campaign_id = data.get("campaign_id")
+    prospect_id = data.get("prospect_id")
+    subject = data.get("subject")
+    body = data.get("body")
+    follow_ups = data.get("follow_ups")
+
+    if not campaign_id or prospect_id is None:
+        return jsonify({"error": "Missing campaign_id or prospect_id"}), 400
+
+    updates = {}
+    if subject is not None:
+        updates["email_subject"] = subject
+    if body is not None:
+        updates["email_body"] = body
+    if follow_ups is not None:
+        updates["follow_ups"] = follow_ups
+
+    StateManager.update_prospect(campaign_id, int(prospect_id), updates)
+    return jsonify({"success": True})
+
+@app.route('/api/deliverability-check', methods=['POST'])
+def api_deliverability_check():
+    data = request.json or {}
+    subject = data.get("subject", "")
+    body = data.get("body", "")
+    sender_email = data.get("sender_email")
+    
+    if not sender_email:
+        settings = StateManager.load_settings()
+        sender_email = settings.get("smtp_user", "")
+
+    from tools.deliverability import analyze_email
+    report = analyze_email(subject, body, sender_email)
+    return jsonify(report)
 
 # ── API: Campaign Delete ──
 

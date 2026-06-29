@@ -286,6 +286,7 @@ class Orchestrator:
                     "stage": "completed",
                     "email_subject": draft.get("subject", ""),
                     "email_body": draft.get("body", ""),
+                    "follow_ups": draft.get("follow_ups", []),
                     "proofread_score": score,
                     "proofread_critique": critique,
                     "relevance_score": evaluation.get("relevance_score", 0),

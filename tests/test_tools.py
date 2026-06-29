@@ -46,5 +46,17 @@ class TestTools(unittest.TestCase):
         summary = get_company_summary("Microsoft")
         self.assertTrue(isinstance(summary, str))
 
+    def test_deliverability_checker(self):
+        from tools.deliverability import analyze_email
+        # Test a clean email
+        report = analyze_email("Quick question for CEO", "Hi John, saw your recent update. Let me know if you are open to a brief call next week.", "test@gmail.com")
+        self.assertEqual(report["status"], "safe")
+        self.assertGreaterEqual(report["score"], 85)
+        
+        # Test spam words email
+        report_spam = analyze_email("WIN A FREE OPPORTUNITY NOW!!!", "Earn money click here to buy now for financial freedom extra income risk-free act now!", "test@gmail.com")
+        self.assertIn("free", report_spam["spam_words_found"])
+        self.assertEqual(report_spam["status"], "risky")
+
 if __name__ == '__main__':
     unittest.main()

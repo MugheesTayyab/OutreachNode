@@ -81,8 +81,30 @@ def write_excel(prospects: list[dict], filepath: str):
     if not prospects:
         return
     
+    # Process prospects to extract nested follow-up steps into columns
+    processed_prospects = []
+    for p in prospects:
+        p_copy = p.copy()
+        
+        # Initialize default columns
+        p_copy["Follow-up 1 Subject"] = ""
+        p_copy["Follow-up 1 Body"] = ""
+        p_copy["Follow-up 2 Subject"] = ""
+        p_copy["Follow-up 2 Body"] = ""
+        p_copy["Follow-up 3 Subject"] = ""
+        p_copy["Follow-up 3 Body"] = ""
+        
+        fups = p_copy.get("follow_ups", [])
+        for f in fups:
+            step = f.get("step")
+            if step in [1, 2, 3]:
+                p_copy[f"Follow-up {step} Subject"] = f.get("subject", "")
+                p_copy[f"Follow-up {step} Body"] = f.get("body", "")
+                
+        processed_prospects.append(p_copy)
+
     # Convert to DataFrame
-    df = pd.DataFrame(prospects)
+    df = pd.DataFrame(processed_prospects)
     
     # Rename columns to match user's custom requirements
     column_mapping = {
@@ -92,13 +114,24 @@ def write_excel(prospects: list[dict], filepath: str):
     }
     df = df.rename(columns=column_mapping)
     
-    # Ensure all required standard fields exist
-    for col in ["Custom Mail", "Custom Subject", "Custom Body"]:
+    # Define columns to keep in output sheet
+    cols_to_keep = [
+        "Custom Mail", 
+        "Custom Subject", 
+        "Custom Body",
+        "Follow-up 1 Subject",
+        "Follow-up 1 Body",
+        "Follow-up 2 Subject",
+        "Follow-up 2 Body",
+        "Follow-up 3 Subject",
+        "Follow-up 3 Body"
+    ]
+    for col in cols_to_keep:
         if col not in df.columns:
             df[col] = ""
             
-    # Filter to keep ONLY these three columns
-    df = df[["Custom Mail", "Custom Subject", "Custom Body"]]
+    # Filter to keep these columns
+    df = df[cols_to_keep]
     
     # Create a new workbook and select active sheet
     wb = Workbook()
@@ -142,7 +175,7 @@ def write_excel(prospects: list[dict], filepath: str):
             
             # Wrap text for long content (like email bodies or summaries)
             col_name = df.columns[col_idx - 1]
-            if col_name in ["Custom Body", "email_body", "prospect_summary", "company_summary", "recent_news", "pain_points", "proofread_critique"]:
+            if col_name in ["Custom Body", "email_body", "prospect_summary", "company_summary", "recent_news", "pain_points", "proofread_critique", "Follow-up 1 Body", "Follow-up 2 Body", "Follow-up 3 Body"]:
                 cell.alignment = Alignment(wrap_text=True, vertical="top")
             else:
                 cell.alignment = Alignment(vertical="center")
@@ -164,7 +197,8 @@ def write_excel(prospects: list[dict], filepath: str):
         col_name = col[0].value
         
         # Don't make email_body and long summaries extremely wide
-        if col_name in ["Custom Body", "Custom Subject", "email_body", "prospect_summary", "company_summary", "proofread_critique", "recent_news"]:
+        if col_name in ["Custom Body", "Custom Subject", "email_body", "prospect_summary", "company_summary", "proofread_critique", "recent_news",
+                        "Follow-up 1 Subject", "Follow-up 1 Body", "Follow-up 2 Subject", "Follow-up 2 Body", "Follow-up 3 Subject", "Follow-up 3 Body"]:
             ws.column_dimensions[col_letter].width = 45
             continue
             

@@ -83,6 +83,28 @@
                     </label>
                 </div>
 
+                <div class="form-group toggle-group" style="grid-column: span 2; margin-top: 4px; display: flex; flex-direction: column; gap: 8px;">
+                    <label for="generate_followups" class="toggle-label">
+                        <span>Generate AI Follow-up Sequences (3-step)</span>
+                        <input type="checkbox" id="generate_followups" name="generate_followups" onchange="toggleFollowupDelays(this)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <div id="followup-delays-container" style="display: none; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 4px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-secondary);">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="followup_delay_1" style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Step 1 Delay (days)</label>
+                            <input type="number" id="followup_delay_1" name="followup_delay_1" value="3" min="1" max="30" style="padding: 6px 10px; font-size: 13px; width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="followup_delay_2" style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Step 2 Delay (days)</label>
+                            <input type="number" id="followup_delay_2" name="followup_delay_2" value="7" min="1" max="30" style="padding: 6px 10px; font-size: 13px; width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="followup_delay_3" style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Step 3 Delay (days)</label>
+                            <input type="number" id="followup_delay_3" name="followup_delay_3" value="14" min="1" max="30" style="padding: 6px 10px; font-size: 13px; width: 100%;">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group" style="grid-column: span 2; margin-top: 4px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <label for="custom_prompt" style="margin-bottom: 0;">Outreach Prompt / Email Objective</label>
@@ -235,5 +257,12 @@ document.getElementById('save-template-btn')?.addEventListener('click', async ()
         updateCount();
     }
 })();
+
+function toggleFollowupDelays(checkbox) {
+    const container = document.getElementById('followup-delays-container');
+    if (container) {
+        container.style.display = checkbox.checked ? 'grid' : 'none';
+    }
+}
 </script>
 {% endblock %}
